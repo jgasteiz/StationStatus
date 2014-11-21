@@ -15,22 +15,6 @@ public class TflXmlParser {
 
     private static final String ns = null;
 
-    public static class Entry {
-        public final String location;
-        public final String destination;
-        public final String timeTo;
-        public final String departTime;
-        public final String direction;
-
-        private Entry(String location, String destination, String timeTo, String departTime, String direction) {
-            this.location = location;
-            this.destination = destination;
-            this.timeTo = timeTo;
-            this.departTime = departTime;
-            this.direction = direction;
-        }
-    }
-
     public List<Entry> parse(InputStream in) throws XmlPullParserException, IOException {
         try {
             XmlPullParser parser = Xml.newPullParser();
@@ -43,46 +27,29 @@ public class TflXmlParser {
         }
     }
 
+    /**
+     * Goes through the XML and fetches the relevant information
+     * @param parser
+     * @return
+     * @throws XmlPullParserException
+     * @throws IOException
+     */
     private List<Entry> readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
         List<Entry> entries = new ArrayList<Entry>();
+        String direction = null;
 
         parser.require(XmlPullParser.START_TAG, ns, "ROOT");
-        while (parser.next() != XmlPullParser.END_TAG) {
-            if (parser.next() == 1) {
-                break;
-            }
-            while (parser.getName() == null || !parser.getName().equals("P")) {
-                parser.next();
-            }
-            String name = parser.getName();
-            if (name.equals("P")) {
-                entries = readPlatform(parser, entries);
-            } else {
-                skip(parser);
-            }
-        }
-
-        return entries;
-    }
-
-    public List<Entry> readPlatform(XmlPullParser parser, List<Entry> entries) throws IOException, XmlPullParserException {
-
-        String direction = null;
-        while (parser.getName() == null || !parser.getName().equals("T")) {
-            if (parser.getName() != null && parser.getName().equals("P")) {
-                direction = parser.getAttributeValue(ns, "N");
-            }
-            parser.next();
-        }
-
         while (parser.next() > 1) {
-            if (parser.getName() != null) {
-                Entry entry = readEntry(parser, direction);
-                if (entry.destination != null && entry.timeTo != null) {
-                    entries.add(entry);
-                }
+
+            if (parser.getName() == null) {
+                parser.next();
+                continue;
             }
-            parser.next();
+
+            if (parser.getName().equals("T")) {
+                Entry entry = readEntry(parser, direction);
+                entries.add(entry);
+            }
         }
 
         return entries;

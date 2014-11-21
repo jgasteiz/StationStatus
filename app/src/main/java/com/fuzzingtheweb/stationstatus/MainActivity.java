@@ -96,11 +96,11 @@ public class MainActivity extends ActionBarActivity {
             fetchStatusTask.execute();
         }
 
-        public void renderResult(final List<TflXmlParser.Entry> entryList) {
+        public void renderResult(final List<Entry> entryList) {
             showStatus();
 
 
-            ArrayAdapter<TflXmlParser.Entry> commentListAdapter = new ArrayAdapter<TflXmlParser.Entry> (
+            ArrayAdapter<Entry> commentListAdapter = new ArrayAdapter<Entry> (
                     getActivity(),
                     R.layout.entry_item,
                     R.id.item_title,
@@ -109,12 +109,12 @@ public class MainActivity extends ActionBarActivity {
                 public View getView(int position, View convertView, ViewGroup parent) {
                     View view = super.getView(position, convertView, parent);
 
-                    TflXmlParser.Entry entry = entryList.get(position);
+                    Entry entry = entryList.get(position);
 
                     ((TextView) view.findViewById(R.id.item_title))
-                            .setText(entry.destination + " - " + entry.timeTo);
+                            .setText(entry.destination + " - " + entry.getTimeTo());
                     ((TextView) view.findViewById(R.id.item_subtitle))
-                            .setText("departed from " + entry.location + " at " + entry.departTime);
+                            .setText(entry.location + " at " + entry.departTime);
 
                     return view;
                 }

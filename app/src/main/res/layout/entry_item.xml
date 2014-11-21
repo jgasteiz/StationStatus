@@ -17,7 +17,7 @@
         android:paddingBottom="4dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="By some guy" />
+        android:text="Destination" />
 
     <TextView
         android:id="@+id/item_subtitle"
@@ -30,6 +30,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif"
-        android:text="Text goes here" />
+        android:text="Where is it now" />
 
 </LinearLayout>

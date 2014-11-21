@@ -3,6 +3,7 @@ package com.fuzzingtheweb.stationstatus.tasks;
 import android.net.Uri;
 import android.os.AsyncTask;
 
+import com.fuzzingtheweb.stationstatus.Entry;
 import com.fuzzingtheweb.stationstatus.MainActivity;
 import com.fuzzingtheweb.stationstatus.R;
 import com.fuzzingtheweb.stationstatus.TflXmlParser;
@@ -18,7 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
-public class FetchStatusTask extends AsyncTask<Long, Void, List<TflXmlParser.Entry>> {
+public class FetchStatusTask extends AsyncTask<Long, Void, List<Entry>> {
 
     private static final String LOG_TAG = FetchStatusTask.class.getSimpleName();
     private MainActivity.StatusDetailFragment mContext;
@@ -28,7 +29,7 @@ public class FetchStatusTask extends AsyncTask<Long, Void, List<TflXmlParser.Ent
     }
 
     @Override
-    protected List<TflXmlParser.Entry> doInBackground(Long... params) {
+    protected List<Entry> doInBackground(Long... params) {
 
         Uri.Builder b = Uri.parse("http://cloud.tfl.gov.uk").buildUpon();
         b.path("/TrackerNet/PredictionDetailed/N/HND");
@@ -43,28 +44,22 @@ public class FetchStatusTask extends AsyncTask<Long, Void, List<TflXmlParser.Ent
         }
     }
 
-    // Uploads XML from stackoverflow.com, parses it, and combines it with
-    // HTML markup. Returns HTML string.
-
     /**
-     *
-     * @param urlString
-     * @return
+     * Loads an xml and fetches a list of Entry from it.
+     * @param urlString - xml url
+     * @return List<Entry>
      * @throws XmlPullParserException
      * @throws IOException
      */
-    private List<TflXmlParser.Entry> loadXmlFromNetwork(String urlString) throws XmlPullParserException, IOException {
+    private List<Entry> loadXmlFromNetwork(String urlString) throws XmlPullParserException, IOException {
         InputStream stream = null;
 
         TflXmlParser tflXmlParser = new TflXmlParser();
-        List<TflXmlParser.Entry> entryList = null;
+        List<Entry> entryList = null;
         Calendar rightNow = Calendar.getInstance();
         DateFormat formatter = new SimpleDateFormat("MMM dd h:mmaa");
-
-        StringBuilder htmlString = new StringBuilder();
-        htmlString.append("<h3>" + mContext.getString(R.string.page_title) + "</h3>");
-        htmlString.append("<em>" + mContext.getString(R.string.updated) + " " +
-                formatter.format(rightNow.getTime()) + "</em>");
+        // Send this back to the fragment to show the "last updated" time.
+        String updated = mContext.getString(R.string.updated) + ": " + formatter.format(rightNow.getTime());
 
         try {
             stream = downloadUrl(urlString);
@@ -94,7 +89,7 @@ public class FetchStatusTask extends AsyncTask<Long, Void, List<TflXmlParser.Ent
         return conn.getInputStream();
     }
 
-    protected void onPostExecute(List<TflXmlParser.Entry> entryList) {
+    protected void onPostExecute(List<Entry> entryList) {
         mContext.renderResult(entryList);
     }
 }
