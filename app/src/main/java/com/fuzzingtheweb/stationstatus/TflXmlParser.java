@@ -14,11 +14,12 @@ import java.util.List;
 public class TflXmlParser {
 
     private static final String ns = null;
+    private static final String LOG_TAG = TflXmlParser.class.getSimpleName();
 
-    public List<Entry> parse(InputStream in) throws XmlPullParserException, IOException {
+    public List<Platform> parse(InputStream in) throws XmlPullParserException, IOException {
         try {
             XmlPullParser parser = Xml.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+            // parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
             return readFeed(parser);
@@ -29,30 +30,41 @@ public class TflXmlParser {
 
     /**
      * Goes through the XML and fetches the relevant information
-     * @param parser
-     * @return
+     * @param parser - xml parser
+     * @return list of platforms with their next arrivals on each
      * @throws XmlPullParserException
      * @throws IOException
      */
-    private List<Entry> readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
-        List<Entry> entries = new ArrayList<Entry>();
-        String direction = null;
+    private List<Platform> readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
+        List<Platform> platformList = new ArrayList<Platform>();
+        Platform platform = new Platform();
+        Entry entry = null;
 
-        parser.require(XmlPullParser.START_TAG, ns, "ROOT");
-        while (parser.next() > 1) {
+        // While it's not the end of the document.
+        while (parser.next() > XmlPullParser.END_DOCUMENT) {
 
-            if (parser.getName() == null) {
-                parser.next();
+            if (parser.getName() == null || parser.getEventType() == XmlPullParser.END_TAG) {
                 continue;
             }
 
-            if (parser.getName().equals("T")) {
-                Entry entry = readEntry(parser, direction);
-                entries.add(entry);
+            // If we get a platform, get the direction
+            if (parser.getName().equals("P")) {
+                String direction = parser.getAttributeValue(null, "N");
+                // If the platform changes, create a new one
+                if (platform.getDirection() != null && !platform.getDirection().equals(direction)) {
+                    platformList.add(platform);
+                    platform = new Platform();
+                }
+                platform.setDirection(direction);
+            } else if (parser.getName().equals("T")) {
+                entry = readEntry(parser, platform.getDirection());
+                platform.addEntry(entry);
             }
         }
 
-        return entries;
+        platformList.add(platform);
+
+        return platformList;
     }
 
     // Parses the contents of an entry. If it encounters a title, summary, or link tag, hands them off

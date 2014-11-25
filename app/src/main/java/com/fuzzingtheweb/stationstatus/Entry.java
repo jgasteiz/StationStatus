@@ -8,7 +8,7 @@ public class Entry {
     public String departTime;
     public String direction;
 
-    Entry(String location, String destination, String timeTo, String departTime, String direction) {
+    public Entry(String location, String destination, String timeTo, String departTime, String direction) {
         this.location = location;
         this.destination = destination;
         this.timeTo = timeTo;
