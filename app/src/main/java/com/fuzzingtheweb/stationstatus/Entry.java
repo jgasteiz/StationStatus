@@ -4,22 +4,18 @@ package com.fuzzingtheweb.stationstatus;
 public class Entry {
     public String location;
     public String destination;
-    public String timeTo;
-    public String departTime;
-    public String direction;
+    public int minutes;
 
-    public Entry(String location, String destination, String timeTo, String departTime, String direction) {
+    public Entry(String location, String destination, int minutes) {
         this.location = location;
         this.destination = destination;
-        this.timeTo = timeTo;
-        this.departTime = departTime;
-        this.direction = direction;
+        this.minutes = minutes;
     }
 
     public String getTimeTo() {
-        if (this.timeTo.equals("-")) {
+        if (minutes == 0) {
             return "Due";
         }
-        return this.timeTo;
+        return Integer.toString(this.minutes);
     }
 }

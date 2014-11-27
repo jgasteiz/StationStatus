@@ -1,8 +1,11 @@
 package com.fuzzingtheweb.stationstatus;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,7 +20,7 @@ import com.fuzzingtheweb.stationstatus.tasks.FetchStatusTask;
 import java.util.List;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +32,6 @@ public class MainActivity extends ActionBarActivity {
                     .commit();
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -49,6 +51,9 @@ public class MainActivity extends ActionBarActivity {
         if (id == R.id.action_refresh) {
             StatusDetailFragment fragment = ((StatusDetailFragment) getFragmentManager().findFragmentById(R.id.container));
             fragment.loadContent();
+        } else if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);
@@ -61,6 +66,8 @@ public class MainActivity extends ActionBarActivity {
 
         private LinearLayout mLayout;
         private RelativeLayout mProgressLayout;
+        private LayoutInflater mLayoutInflater;
+        private String mStation;
         private static final int NUM_MAX_ENTRIES = 3;
         private static final String LOG_TAG = StatusDetailFragment.class.getSimpleName();
 
@@ -74,6 +81,10 @@ public class MainActivity extends ActionBarActivity {
 
             mLayout = ((LinearLayout) rootView.findViewById(android.R.id.content));
             mProgressLayout = ((RelativeLayout) rootView.findViewById(android.R.id.empty));
+            mLayoutInflater = getActivity().getLayoutInflater();
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+            mStation = settings.getString("example_list", null);
 
             loadContent();
             return rootView;
@@ -90,23 +101,43 @@ public class MainActivity extends ActionBarActivity {
         }
 
         public void loadContent() {
+            if (mStation == null) {
+                mLayout.removeAllViews();
+                View view = mLayoutInflater.inflate(R.layout.platform_item, mLayout, false);
+                ((TextView) view.findViewById(android.R.id.title)).setText("You must select a station in settings");
+                mLayout.addView(view);
+                return;
+            }
             hideContent();
-            FetchStatusTask fetchStatusTask = new FetchStatusTask(this);
+            FetchStatusTask fetchStatusTask = new FetchStatusTask(this, mStation);
             fetchStatusTask.execute();
+        }
+
+        public void setActionBarTitle(String title) {
+            getActivity().getActionBar().setTitle(title);
         }
 
         public void renderResult(final List<Platform> platformList) {
             showContent();
 
-            LayoutInflater layoutInflater = getActivity().getLayoutInflater();
-            View platformView;
-            View entryView;
-
             // Empty main layout.
             mLayout.removeAllViews();
 
+            // If there's nothing, show message saying so.
+            if (platformList.size() == 0) {
+                View view = mLayoutInflater.inflate(R.layout.platform_item, mLayout, false);
+                ((TextView) view.findViewById(android.R.id.title)).setText("There is no incoming data");
+                mLayout.addView(view);
+                return;
+            }
+
+            setActionBarTitle(platformList.get(0).getStationName());
+
+            View platformView;
+            View entryView;
+
             for (final Platform platform : platformList) {
-                platformView = layoutInflater.inflate(R.layout.platform_item, mLayout, false);
+                platformView = mLayoutInflater.inflate(R.layout.platform_item, mLayout, false);
                 ((TextView) platformView.findViewById(android.R.id.title))
                         .setText(platform.getDirection());
 
@@ -117,12 +148,12 @@ public class MainActivity extends ActionBarActivity {
                     if (numEntries == NUM_MAX_ENTRIES) {
                         break;
                     }
-                    entryView = layoutInflater.inflate(R.layout.entry_item, entryLayout, false);
+                    entryView = mLayoutInflater.inflate(R.layout.entry_item, entryLayout, false);
 
                     ((TextView) entryView.findViewById(R.id.item_title))
                             .setText(entry.destination + " - " + entry.getTimeTo());
                     ((TextView) entryView.findViewById(R.id.item_subtitle))
-                            .setText(entry.location + " at " + entry.departTime);
+                            .setText(entry.location);
 
                     entryLayout.addView(entryView);
                     numEntries++;

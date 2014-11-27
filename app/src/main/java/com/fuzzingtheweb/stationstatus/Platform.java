@@ -7,9 +7,20 @@ public class Platform {
     private String direction;
     private List<Entry> entryList;
 
-    public Platform() {
+    public String getStationName() {
+        return stationName;
+    }
+
+    public void setStationName(String stationName) {
+        this.stationName = stationName;
+    }
+
+    private String stationName;
+
+    public Platform(String stationName) {
         this.entryList = new ArrayList<Entry>();
         this.direction = null;
+        this.stationName = stationName;
     }
 
     public String getDirection() {
