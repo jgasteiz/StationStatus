@@ -11,8 +11,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.fuzzingtheweb.stationstatus.tasks.FetchStatusTask;
@@ -24,8 +26,10 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
                     .add(R.id.container, new StatusDetailFragment())
@@ -65,9 +69,11 @@ public class MainActivity extends Activity {
     public static class StatusDetailFragment extends Fragment {
 
         private LinearLayout mLayout;
-        private RelativeLayout mProgressLayout;
+        private ScrollView mStationData;
+        private Button mSettingsButton;
         private LayoutInflater mLayoutInflater;
         private String mStation;
+        private String mLine;
         private static final int NUM_MAX_ENTRIES = 3;
         private static final String LOG_TAG = StatusDetailFragment.class.getSimpleName();
 
@@ -80,37 +86,41 @@ public class MainActivity extends Activity {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
             mLayout = ((LinearLayout) rootView.findViewById(android.R.id.content));
-            mProgressLayout = ((RelativeLayout) rootView.findViewById(android.R.id.empty));
+            mStationData = ((ScrollView) rootView.findViewById(R.id.station_data));
+            mSettingsButton = ((Button) rootView.findViewById(R.id.pick_a_station));
             mLayoutInflater = getActivity().getLayoutInflater();
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
-            mStation = settings.getString("example_list", null);
+            mSettingsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                    startActivity(intent);
+                }
+            });
 
-            loadContent();
             return rootView;
         }
 
-        public void showContent() {
-            mProgressLayout.setVisibility(View.GONE);
-            mLayout.setVisibility(View.VISIBLE);
-        }
-
-        public void hideContent() {
-            mLayout.setVisibility(View.GONE);
-            mProgressLayout.setVisibility(View.VISIBLE);
+        @Override
+        public void onResume() {
+            super.onResume();
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            mStation = settings.getString("station", null);
+            mLine = settings.getString("line", null);
+            loadContent();
         }
 
         public void loadContent() {
-            if (mStation == null) {
-                mLayout.removeAllViews();
-                View view = mLayoutInflater.inflate(R.layout.platform_item, mLayout, false);
-                ((TextView) view.findViewById(android.R.id.title)).setText("You must select a station in settings");
-                mLayout.addView(view);
-                return;
+            if (mStation == null || mLine == null) {
+                mStationData.setVisibility(View.GONE);
+                mSettingsButton.setVisibility(View.VISIBLE);
+            } else {
+                mSettingsButton.setVisibility(View.GONE);
+                mStationData.setVisibility(View.VISIBLE);
+                getActivity().setProgressBarIndeterminateVisibility(Boolean.TRUE);
+                FetchStatusTask fetchStatusTask = new FetchStatusTask(this, mStation, mLine);
+                fetchStatusTask.execute();
             }
-            hideContent();
-            FetchStatusTask fetchStatusTask = new FetchStatusTask(this, mStation);
-            fetchStatusTask.execute();
         }
 
         public void setActionBarTitle(String title) {
@@ -118,7 +128,7 @@ public class MainActivity extends Activity {
         }
 
         public void renderResult(final List<Platform> platformList) {
-            showContent();
+            getActivity().setProgressBarIndeterminateVisibility(Boolean.FALSE);
 
             // Empty main layout.
             mLayout.removeAllViews();

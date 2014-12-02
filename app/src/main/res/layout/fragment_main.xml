@@ -4,7 +4,16 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity$PlaceholderFragment">
 
+    <Button
+        android:id="@+id/pick_a_station"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/pick_a_station"
+        android:visibility="gone"
+        />
+
     <ScrollView
+        android:id="@+id/station_data"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
         <LinearLayout
@@ -14,22 +23,4 @@
             android:orientation="vertical">
         </LinearLayout>
     </ScrollView>
-
-    <RelativeLayout
-        android:id="@android:id/empty"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:translationZ="2dp"
-            android:layout_centerInParent="true"/>
-
-    </RelativeLayout>
-
 </RelativeLayout>

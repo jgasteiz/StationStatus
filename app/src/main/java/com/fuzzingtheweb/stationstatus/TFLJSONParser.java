@@ -17,6 +17,10 @@ public class TFLJSONParser {
 
         List<Platform> platformList = new ArrayList<Platform>();
 
+        if (jsonObject == null) {
+            return platformList;
+        }
+
         String stationName = jsonObject.getString("station_name");
         Iterator lineIterator = jsonObject.getJSONObject("lines").keys();
         while (lineIterator.hasNext()) {
@@ -50,5 +54,9 @@ public class TFLJSONParser {
                     entryJSON.getInt("best_departure_estimate_mins")));
         }
         return entryList;
+    }
+
+    public List<Tuple> getStationsList(JSONObject jsonObject) {
+        return null;
     }
 }

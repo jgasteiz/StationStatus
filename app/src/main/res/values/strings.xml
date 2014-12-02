@@ -7,5 +7,7 @@
     <string name="action_refresh">Refresh</string>
     <string name="page_title">Hendon Central Status</string>
     <string name="updated">updated</string>
+    <string name="pick_a_station">Pick your station</string>
+    <string name="title_activity_select_station">SelectStation</string>
 
 </resources>

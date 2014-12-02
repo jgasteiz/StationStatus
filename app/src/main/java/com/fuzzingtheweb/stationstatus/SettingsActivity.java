@@ -85,7 +85,18 @@ public class SettingsActivity extends PreferenceActivity {
         // Bind the summaries of EditText/List/Dialog/Ringtone preferences to
         // their values. When their values change, their summaries are updated
         // to reflect the new value, per the Android Design guidelines.
-        bindPreferenceSummaryToValue(findPreference("example_list"));
+        bindPreferenceSummaryToValue(findPreference("line"));
+        bindPreferenceSummaryToValue(findPreference("station"));
+
+        ListPreference listPreference = (ListPreference) findPreference("station");
+        CharSequence entries[] = new String[10];
+        CharSequence entryValues[] = new String[10];
+        for (int i = 0; i < entries.length; i++) {
+            entries[i] = "Line " + i;
+            entryValues[i] = Integer.toString(i);
+        }
+        listPreference.setEntries(entries);
+        listPreference.setEntryValues(entryValues);
     }
 
     /**
@@ -195,7 +206,12 @@ public class SettingsActivity extends PreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("example_list"));
+            bindPreferenceSummaryToValue(findPreference("station"));
+            bindPreferenceSummaryToValue(findPreference("line"));
         }
+    }
+
+    public void renderResult(List<Tuple> stationList) {
+
     }
 }

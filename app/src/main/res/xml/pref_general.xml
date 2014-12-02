@@ -1,11 +1,18 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <ListPreference
-        android:key="example_list"
+        android:key="line"
+        android:title="@string/pref_title_line"
+        android:entries="@array/pref_list_line_names"
+        android:entryValues="@array/pref_list_line_values"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null" />
+
+    <ListPreference
+        android:key="station"
         android:title="@string/pref_title_tube_station"
-        android:defaultValue="-1"
-        android:entries="@array/pref_list_names"
-        android:entryValues="@array/pref_list_values"
+        android:entries="@array/pref_list_station_names"
+        android:entryValues="@array/pref_list_station_values"
         android:negativeButtonText="@null"
         android:positiveButtonText="@null" />
 
