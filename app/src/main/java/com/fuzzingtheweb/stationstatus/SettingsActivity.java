@@ -13,6 +13,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 
+import com.fuzzingtheweb.stationstatus.tasks.FetchStationsTask;
+
 import java.util.List;
 
 /**
@@ -35,9 +37,12 @@ public class SettingsActivity extends PreferenceActivity {
      */
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
 
+    private static SettingsActivity mContext;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = this;
     }
 
     @Override
@@ -85,18 +90,8 @@ public class SettingsActivity extends PreferenceActivity {
         // Bind the summaries of EditText/List/Dialog/Ringtone preferences to
         // their values. When their values change, their summaries are updated
         // to reflect the new value, per the Android Design guidelines.
-        bindPreferenceSummaryToValue(findPreference("line"));
+        bindPreferenceSummaryToValueLine(findPreference("line"));
         bindPreferenceSummaryToValue(findPreference("station"));
-
-        ListPreference listPreference = (ListPreference) findPreference("station");
-        CharSequence entries[] = new String[10];
-        CharSequence entryValues[] = new String[10];
-        for (int i = 0; i < entries.length; i++) {
-            entries[i] = "Line " + i;
-            entryValues[i] = Integer.toString(i);
-        }
-        listPreference.setEntries(entries);
-        listPreference.setEntryValues(entryValues);
     }
 
     /**
@@ -171,6 +166,34 @@ public class SettingsActivity extends PreferenceActivity {
     };
 
     /**
+     * A preference value change listener that updates the preference's summary
+     * to reflect its new value.
+     */
+    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListenerLine = new Preference.OnPreferenceChangeListener() {
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object value) {
+            String stringValue = value.toString();
+
+            // For list preferences, look up the correct display value in
+            // the preference's 'entries' list.
+            ListPreference listPreference = (ListPreference) preference;
+            int index = listPreference.findIndexOfValue(stringValue);
+
+            // Set the summary to reflect the new value.
+            preference.setSummary(
+                    index >= 0
+                            ? listPreference.getEntries()[index]
+                            : null);
+
+            // Load stations for the selected line
+            FetchStationsTask stationsTask = new FetchStationsTask(mContext, stringValue);
+            stationsTask.execute();
+
+            return true;
+        }
+    };
+
+    /**
      * Binds a preference's summary to its value. More specifically, when the
      * preference's value is changed, its summary (line of text below the
      * preference title) is updated to reflect the value. The summary is also
@@ -191,6 +214,18 @@ public class SettingsActivity extends PreferenceActivity {
                         .getString(preference.getKey(), ""));
     }
 
+    private static void bindPreferenceSummaryToValueLine(Preference preference) {
+        // Set the listener to watch for value changes.
+        preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListenerLine);
+
+        // Trigger the listener immediately with the preference's
+        // current value.
+        sBindPreferenceSummaryToValueListenerLine.onPreferenceChange(preference,
+                PreferenceManager
+                        .getDefaultSharedPreferences(preference.getContext())
+                        .getString(preference.getKey(), ""));
+    }
+
     /**
      * This fragment shows general preferences only. It is used when the
      * activity is showing a two-pane settings UI.
@@ -206,12 +241,22 @@ public class SettingsActivity extends PreferenceActivity {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
+            bindPreferenceSummaryToValueLine(findPreference("line"));
             bindPreferenceSummaryToValue(findPreference("station"));
-            bindPreferenceSummaryToValue(findPreference("line"));
         }
     }
 
     public void renderResult(List<Tuple> stationList) {
+        ListPreference listPreference = (ListPreference) findPreference("station");
 
+        CharSequence entries[] = new String[stationList.size()];
+        CharSequence entryValues[] = new String[stationList.size()];
+        for (int i = 0; i < stationList.size(); i++) {
+            Tuple station = stationList.get(i);
+            entries[i] = (String) station.getLeft();
+            entryValues[i] = (String) station.getRight();
+        }
+        listPreference.setEntries(entries);
+        listPreference.setEntryValues(entryValues);
     }
 }

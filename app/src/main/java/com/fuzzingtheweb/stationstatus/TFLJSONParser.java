@@ -46,7 +46,7 @@ public class TFLJSONParser {
 
     public List<Entry> getEntryList(JSONArray jsonArray) throws JSONException {
         List<Entry> entryList = new ArrayList<Entry>();
-        for(int i = 0; i < jsonArray.length(); i++) {
+        for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject entryJSON = (JSONObject) jsonArray.get(i);
             entryList.add(new Entry(
                     entryJSON.getString("location"),
@@ -56,7 +56,13 @@ public class TFLJSONParser {
         return entryList;
     }
 
-    public List<Tuple> getStationsList(JSONObject jsonObject) {
-        return null;
+    public List<Tuple> getStationsList(JSONObject jsonObject) throws JSONException {
+        JSONArray stationListJSON = jsonObject.getJSONArray("stations");
+        List<Tuple> stationList = new ArrayList<Tuple>();
+        for (int i = 0; i < stationListJSON.length(); i++) {
+            JSONObject stationJSON = (JSONObject) stationListJSON.get(i);
+            stationList.add(new Tuple<String, String>(stationJSON.getString("name"), stationJSON.getString("station_code")));
+        }
+        return stationList;
     }
 }
