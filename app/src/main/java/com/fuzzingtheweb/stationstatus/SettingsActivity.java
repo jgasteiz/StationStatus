@@ -38,6 +38,7 @@ public class SettingsActivity extends PreferenceActivity {
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
 
     private static SettingsActivity mContext;
+    private static ListPreference mStationListPreference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,11 +88,15 @@ public class SettingsActivity extends PreferenceActivity {
         // Add 'general' preferences.
         addPreferencesFromResource(R.xml.pref_general);
 
+        mStationListPreference = (ListPreference) findPreference("station");
+
         // Bind the summaries of EditText/List/Dialog/Ringtone preferences to
         // their values. When their values change, their summaries are updated
         // to reflect the new value, per the Android Design guidelines.
         bindPreferenceSummaryToValueLine(findPreference("line"));
         bindPreferenceSummaryToValue(findPreference("station"));
+
+        mStationListPreference.setEnabled(false);
     }
 
     /**
@@ -186,9 +191,11 @@ public class SettingsActivity extends PreferenceActivity {
                             : null);
 
             // Load stations for the selected line
-            FetchStationsTask stationsTask = new FetchStationsTask(mContext, stringValue);
-            stationsTask.execute();
-
+            if (stringValue != null && !stringValue.equals("")) {
+                mStationListPreference.setEnabled(false);
+                FetchStationsTask stationsTask = new FetchStationsTask(mContext, stringValue);
+                stationsTask.execute();
+            }
             return true;
         }
     };
@@ -247,8 +254,6 @@ public class SettingsActivity extends PreferenceActivity {
     }
 
     public void renderResult(List<Tuple> stationList) {
-        ListPreference listPreference = (ListPreference) findPreference("station");
-
         CharSequence entries[] = new String[stationList.size()];
         CharSequence entryValues[] = new String[stationList.size()];
         for (int i = 0; i < stationList.size(); i++) {
@@ -256,7 +261,8 @@ public class SettingsActivity extends PreferenceActivity {
             entries[i] = (String) station.getLeft();
             entryValues[i] = (String) station.getRight();
         }
-        listPreference.setEntries(entries);
-        listPreference.setEntryValues(entryValues);
+        mStationListPreference.setEntries(entries);
+        mStationListPreference.setEntryValues(entryValues);
+        mStationListPreference.setEnabled(true);
     }
 }
