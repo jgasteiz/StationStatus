@@ -5,10 +5,10 @@
     tools:context=".MainActivity$PlaceholderFragment">
 
     <Button
-        android:id="@+id/pick_a_station"
+        android:id="@+id/add_a_station"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/pick_a_station"
+        android:text="@string/add_a_station"
         android:visibility="gone"
         />
 

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,17 +22,25 @@ import java.util.List;
 
 public class MyStationsActivity extends Activity {
 
+    public static final String NO_STATIONS = "no_stations";
+    private static boolean mNoStations = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_stations);
+
+        Intent intent = getIntent();
+        if (intent.hasExtra(NO_STATIONS)) {
+            mNoStations = true;
+        }
+
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
-                    .add(R.id.container, new MyStationsFragment())
+                    .add(R.id.container, MyStationsFragment.newInstance(mNoStations))
                     .commit();
         }
     }
-
 
     /**
      * A placeholder fragment containing a simple view.
@@ -42,8 +51,29 @@ public class MyStationsActivity extends Activity {
         private CharSequence[] mLineNames;
         private CharSequence[] mLineKeys;
         private TextView mSelectedStation;
+        private boolean mNoStations;
 
-        public MyStationsFragment() {
+        /**
+         * Create a new instance of MyStationsFragment, providing "noStations"
+         * as an argument.
+         */
+        static MyStationsFragment newInstance(boolean noStations) {
+            MyStationsFragment f = new MyStationsFragment();
+
+            Bundle args = new Bundle();
+            args.putBoolean(MyStationsActivity.NO_STATIONS, noStations);
+            f.setArguments(args);
+
+            return f;
+        }
+
+        /**
+         * When creating, retrieve this instance's number from its arguments.
+         */
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            mNoStations = getArguments() != null && getArguments().getBoolean(NO_STATIONS);
         }
 
         @Override
@@ -64,7 +94,18 @@ public class MyStationsActivity extends Activity {
                 mSelectedStation.setText("Line: " + line + ", Station: " + station);
             }
 
-            rootView.findViewById(R.id.new_station).setOnClickListener(openDialogChooseLine);
+            rootView.findViewById(R.id.new_station).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    chooseLine();
+                }
+            });
+
+            // Open the station picker directly if there are no stations.
+            if (mNoStations) {
+                chooseLine();
+            }
+
             return rootView;
         }
 
@@ -75,34 +116,27 @@ public class MyStationsActivity extends Activity {
             mSelectedStation.setVisibility(View.VISIBLE);
         }
 
-        private View.OnClickListener openDialogChooseLine = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // 1. Instantiate an AlertDialog.Builder with its constructor
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        public void chooseLine() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Pick a line")
+                    .setItems(mLineNames, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            final CharSequence selectedLine = mLineKeys[which];
+                            Log.d(LOG_TAG, "Selected line: " + selectedLine);
+                            OnStationsFetched onStationsFetched = new OnStationsFetched() {
+                                @Override
+                                public void onStationsFetched(List<Tuple> tupleList) {
+                                    chooseStation(selectedLine.toString(), tupleList);
+                                }
+                            };
+                            FetchStationsTask stationsTask = new FetchStationsTask(onStationsFetched, selectedLine.toString());
+                            stationsTask.execute();
+                        }
+                    });
 
-                // 2. Chain together various setter methods to set the dialog characteristics
-                builder.setTitle("Pick a line")
-                        .setItems(mLineNames, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                final CharSequence selectedLine = mLineKeys[which];
-                                Log.d(LOG_TAG, "Selected line: " + selectedLine);
-                                OnStationsFetched onStationsFetched = new OnStationsFetched() {
-                                    @Override
-                                    public void onStationsFetched(List<Tuple> tupleList) {
-                                        chooseStation(selectedLine.toString(), tupleList);
-                                    }
-                                };
-                                FetchStationsTask stationsTask = new FetchStationsTask(onStationsFetched, selectedLine.toString());
-                                stationsTask.execute();
-                            }
-                        });
-
-                // 3. Get the AlertDialog from create()
-                AlertDialog dialog = builder.create();
-                dialog.show();
-            }
-        };
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
 
         public void chooseStation(final String line, List<Tuple> stationTupleList) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());

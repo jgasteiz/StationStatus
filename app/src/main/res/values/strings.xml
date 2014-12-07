@@ -11,5 +11,6 @@
     <string name="title_activity_my_stations">Manage stations</string>
     <string name="add_new_station">Add new station</string>
     <string name="manage_stations">Manage stations</string>
+    <string name="add_a_station">Add a station</string>
 
 </resources>

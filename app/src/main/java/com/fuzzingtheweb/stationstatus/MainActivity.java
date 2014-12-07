@@ -3,9 +3,7 @@ package com.fuzzingtheweb.stationstatus;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,7 +16,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.fuzzingtheweb.stationstatus.tasks.FetchStatusTask;
-import com.fuzzingtheweb.stationstatus.tasks.OnStationsFetched;
 import com.fuzzingtheweb.stationstatus.tasks.OnStatusesFetched;
 import com.fuzzingtheweb.stationstatus.tasks.Platform;
 import com.fuzzingtheweb.stationstatus.tasks.StationEntry;
@@ -110,13 +107,14 @@ public class MainActivity extends Activity {
 
             mLayout = ((LinearLayout) rootView.findViewById(android.R.id.content));
             mStationData = ((ScrollView) rootView.findViewById(R.id.station_data));
-            mSettingsButton = ((Button) rootView.findViewById(R.id.pick_a_station));
+            mSettingsButton = ((Button) rootView.findViewById(R.id.add_a_station));
             mLayoutInflater = getActivity().getLayoutInflater();
 
             mSettingsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(getActivity(), MyStationsActivity.class);
+                    intent.putExtra(MyStationsActivity.NO_STATIONS, true);
                     startActivity(intent);
                 }
             });
@@ -136,6 +134,7 @@ public class MainActivity extends Activity {
             if (mStation == null || mLine == null) {
                 mStationData.setVisibility(View.GONE);
                 mSettingsButton.setVisibility(View.VISIBLE);
+                ((MainActivity) getActivity()).hideProgressBar();
             } else {
                 mSettingsButton.setVisibility(View.GONE);
                 mStationData.setVisibility(View.VISIBLE);
