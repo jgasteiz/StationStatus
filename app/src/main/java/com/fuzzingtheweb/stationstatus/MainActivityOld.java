@@ -2,15 +2,14 @@ package com.fuzzingtheweb.stationstatus;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.widget.DrawerLayout;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -27,52 +26,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class MainActivityOld extends Activity {
 
     private boolean mRefreshing = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_activity2);
+        setContentView(R.layout.activity_main);
+
+        if (savedInstanceState == null) {
+            getFragmentManager().beginTransaction()
+                    .add(R.id.container, StatusDetailFragment.newInstance(0))
+                    .commit();
+        }
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        NavigationDrawerFragment navigationDrawerFragment = (NavigationDrawerFragment)
-                getFragmentManager().findFragmentById(R.id.navigation_drawer);
-
-        // Set up the drawer.
-        navigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
-    }
-
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, StatusDetailFragment.newInstance(position))
-                .commit();
-    }
-
-//    public void onSectionAttached(int number) {
-//        switch (number) {
-//            case 1:
-//                mTitle = getString(R.string.title_section1);
-//                break;
-//            case 2:
-//                mTitle = getString(R.string.title_section2);
-//                break;
-//            case 3:
-//                mTitle = getString(R.string.title_section3);
-//                break;
-//        }
-//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -123,9 +92,9 @@ public class MainActivity extends Activity
         private Button mSettingsButton;
         private LayoutInflater mLayoutInflater;
         private ArrayList<Station> mStationList;
-        private int mStationIndex;
         private DBHelper mDbHelper;
         private static final int NUM_MAX_ENTRIES = 3;
+        private static final String LOG_TAG = StatusDetailFragment.class.getSimpleName();
 
         /**
          * The fragment argument representing the section number for this
@@ -137,12 +106,21 @@ public class MainActivity extends Activity
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static StatusDetailFragment newInstance(int stationIndex) {
+        public static StatusDetailFragment newInstance(int sectionNumber) {
             StatusDetailFragment fragment = new StatusDetailFragment();
             Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, stationIndex);
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
             return fragment;
+        }
+
+        /**
+         * When creating, retrieve this instance's number from its arguments.
+         */
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            mDbHelper = new DBHelper(getActivity());
         }
 
         @Override
@@ -164,24 +142,21 @@ public class MainActivity extends Activity
                 }
             });
 
-            mDbHelper = new DBHelper(getActivity());
-            mStationList = mDbHelper.getStationList();
-            loadContent();
-
             return rootView;
         }
 
         @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            mStationIndex = getArguments().getInt(ARG_SECTION_NUMBER);
+        public void onResume() {
+            super.onResume();
+            mStationList = mDbHelper.getStationList();
+            loadContent();
         }
 
         public void loadContent() {
             if (mStationList.size() > 0) {
                 mSettingsButton.setVisibility(View.GONE);
                 mStationData.setVisibility(View.VISIBLE);
-                ((MainActivity) getActivity()).showProgressBar();
+                ((MainActivityOld) getActivity()).showProgressBar();
 
                 OnStatusesFetched onStatusesFetched = new OnStatusesFetched() {
                     @Override
@@ -191,18 +166,18 @@ public class MainActivity extends Activity
                 };
                 FetchStatusTask fetchStatusTask = new FetchStatusTask(
                         onStatusesFetched,
-                        mStationList.get(mStationIndex).getStationCode(),
-                        mStationList.get(mStationIndex).getLineCode());
+                        mStationList.get(0).getStationCode(),
+                        mStationList.get(0).getLineCode());
                 fetchStatusTask.execute();
             } else {
                 mStationData.setVisibility(View.GONE);
                 mSettingsButton.setVisibility(View.VISIBLE);
-                ((MainActivity) getActivity()).hideProgressBar();
+                ((MainActivityOld) getActivity()).hideProgressBar();
             }
         }
 
         public void renderResult(final List<Platform> platformList) {
-            ((MainActivity) getActivity()).hideProgressBar();
+            ((MainActivityOld) getActivity()).hideProgressBar();
 
             // Empty main layout.
             mLayout.removeAllViews();
@@ -248,5 +223,4 @@ public class MainActivity extends Activity
             }
         }
     }
-
 }
