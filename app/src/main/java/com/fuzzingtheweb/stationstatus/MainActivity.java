@@ -18,11 +18,18 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.fuzzingtheweb.stationstatus.tasks.FetchStatusTask;
+import com.fuzzingtheweb.stationstatus.tasks.OnStationsFetched;
+import com.fuzzingtheweb.stationstatus.tasks.OnStatusesFetched;
+import com.fuzzingtheweb.stationstatus.tasks.Platform;
+import com.fuzzingtheweb.stationstatus.tasks.StationEntry;
+import com.fuzzingtheweb.stationstatus.util.PreferencesHandler;
 
 import java.util.List;
 
 
 public class MainActivity extends Activity {
+
+    private boolean mRefreshing = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +48,12 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuItem refreshingLayout = menu.findItem(R.id.refreshing);
+        if (mRefreshing) {
+            refreshingLayout.setActionView(R.layout.actionbar_indeterminate_progress);
+        } else {
+            refreshingLayout.setVisible(false);
+        }
         return true;
     }
 
@@ -56,11 +69,21 @@ public class MainActivity extends Activity {
             StatusDetailFragment fragment = ((StatusDetailFragment) getFragmentManager().findFragmentById(R.id.container));
             fragment.loadContent();
         } else if (id == R.id.action_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
+            Intent intent = new Intent(this, MyStationsActivity.class);
             startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void showProgressBar() {
+        mRefreshing = true;
+        invalidateOptionsMenu();
+    }
+
+    public void hideProgressBar() {
+        mRefreshing = false;
+        invalidateOptionsMenu();
     }
 
     /**
@@ -93,7 +116,7 @@ public class MainActivity extends Activity {
             mSettingsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                    Intent intent = new Intent(getActivity(), MyStationsActivity.class);
                     startActivity(intent);
                 }
             });
@@ -104,9 +127,8 @@ public class MainActivity extends Activity {
         @Override
         public void onResume() {
             super.onResume();
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            mStation = settings.getString("station", null);
-            mLine = settings.getString("line", null);
+            mStation = PreferencesHandler.getStation(getActivity());
+            mLine = PreferencesHandler.getLine(getActivity());
             loadContent();
         }
 
@@ -117,18 +139,22 @@ public class MainActivity extends Activity {
             } else {
                 mSettingsButton.setVisibility(View.GONE);
                 mStationData.setVisibility(View.VISIBLE);
-                getActivity().setProgressBarIndeterminateVisibility(Boolean.TRUE);
-                FetchStatusTask fetchStatusTask = new FetchStatusTask(this, mStation, mLine);
+                ((MainActivity) getActivity()).showProgressBar();
+
+
+                OnStatusesFetched onStatusesFetched = new OnStatusesFetched() {
+                    @Override
+                    public void onStatusesFetched(List<Platform> platformList) {
+                        renderResult(platformList);
+                    }
+                };
+                FetchStatusTask fetchStatusTask = new FetchStatusTask(onStatusesFetched, mStation, mLine);
                 fetchStatusTask.execute();
             }
         }
 
-        public void setActionBarTitle(String title) {
-            getActivity().getActionBar().setTitle(title);
-        }
-
         public void renderResult(final List<Platform> platformList) {
-            getActivity().setProgressBarIndeterminateVisibility(Boolean.FALSE);
+            ((MainActivity) getActivity()).hideProgressBar();
 
             // Empty main layout.
             mLayout.removeAllViews();
@@ -141,7 +167,8 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            setActionBarTitle(platformList.get(0).getStationName());
+            String title = platformList.get(0).getStationName();
+            getActivity().getActionBar().setTitle(title);
 
             View platformView;
             View entryView;
@@ -154,16 +181,16 @@ public class MainActivity extends Activity {
                 LinearLayout entryLayout = ((LinearLayout) platformView.findViewById(android.R.id.content));
 
                 int numEntries = 0;
-                for (final Entry entry : platform.getEntryList()) {
+                for (final StationEntry stationEntry : platform.getStationEntryList()) {
                     if (numEntries == NUM_MAX_ENTRIES) {
                         break;
                     }
-                    entryView = mLayoutInflater.inflate(R.layout.entry_item, entryLayout, false);
+                    entryView = mLayoutInflater.inflate(R.layout.station_entry_item, entryLayout, false);
 
                     ((TextView) entryView.findViewById(R.id.item_title))
-                            .setText(entry.destination + " - " + entry.getTimeTo());
+                            .setText(stationEntry.destination + " - " + stationEntry.getTimeTo());
                     ((TextView) entryView.findViewById(R.id.item_subtitle))
-                            .setText(entry.location);
+                            .setText(stationEntry.location);
 
                     entryLayout.addView(entryView);
                     numEntries++;

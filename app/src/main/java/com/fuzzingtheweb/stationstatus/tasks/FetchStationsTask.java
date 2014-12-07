@@ -2,10 +2,9 @@ package com.fuzzingtheweb.stationstatus.tasks;
 
 import android.os.AsyncTask;
 
-import com.fuzzingtheweb.stationstatus.JSONParser;
-import com.fuzzingtheweb.stationstatus.SettingsActivity;
-import com.fuzzingtheweb.stationstatus.TFLJSONParser;
-import com.fuzzingtheweb.stationstatus.Tuple;
+import com.fuzzingtheweb.stationstatus.util.JSONParser;
+import com.fuzzingtheweb.stationstatus.util.TFLJSONParser;
+import com.fuzzingtheweb.stationstatus.util.Tuple;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,13 +15,13 @@ import java.util.Locale;
 public class FetchStationsTask extends AsyncTask<Long, Void, List<Tuple>> {
 
     private static final String LOG_TAG = FetchStationsTask.class.getSimpleName();
-    private SettingsActivity mContext;
     private String mLine;
+    private OnStationsFetched mListener;
     private String APP_ID = "0399c806";
     private String API_KEY = "fe4d7f6e2a9cc15a96a76ce29ab0c069";
 
-    public FetchStationsTask(SettingsActivity context, String line) {
-        mContext = context;
+    public FetchStationsTask(OnStationsFetched listener, String line) {
+        mListener = listener;
         mLine = line;
     }
 
@@ -40,7 +39,8 @@ public class FetchStationsTask extends AsyncTask<Long, Void, List<Tuple>> {
         return null;
     }
 
+    @Override
     protected void onPostExecute(List<Tuple> stationList) {
-        mContext.renderResult(stationList);
+        mListener.onStationsFetched(stationList);
     }
 }

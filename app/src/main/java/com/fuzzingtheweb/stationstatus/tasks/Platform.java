@@ -1,11 +1,11 @@
-package com.fuzzingtheweb.stationstatus;
+package com.fuzzingtheweb.stationstatus.tasks;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Platform {
     private String direction;
-    private List<Entry> entryList;
+    private List<StationEntry> stationEntryList;
 
     public String getStationName() {
         return stationName;
@@ -18,7 +18,7 @@ public class Platform {
     private String stationName;
 
     public Platform(String stationName) {
-        this.entryList = new ArrayList<Entry>();
+        this.stationEntryList = new ArrayList<StationEntry>();
         this.direction = null;
         this.stationName = stationName;
     }
@@ -31,15 +31,15 @@ public class Platform {
         this.direction = direction;
     }
 
-    public List<Entry> getEntryList() {
-        return entryList;
+    public List<StationEntry> getStationEntryList() {
+        return stationEntryList;
     }
 
-    public void setEntryList(List<Entry> entryList) {
-        this.entryList = entryList;
+    public void setStationEntryList(List<StationEntry> stationEntryList) {
+        this.stationEntryList = stationEntryList;
     }
 
-    public void addEntry(Entry entry) {
-        this.entryList.add(entry);
+    public void addEntry(StationEntry stationEntry) {
+        this.stationEntryList.add(stationEntry);
     }
 }

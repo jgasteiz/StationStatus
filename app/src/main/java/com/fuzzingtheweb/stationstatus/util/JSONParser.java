@@ -1,4 +1,4 @@
-package com.fuzzingtheweb.stationstatus;
+package com.fuzzingtheweb.stationstatus.util;
 
 import android.util.Log;
 

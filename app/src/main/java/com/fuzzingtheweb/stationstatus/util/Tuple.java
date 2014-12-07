@@ -1,4 +1,4 @@
-package com.fuzzingtheweb.stationstatus;
+package com.fuzzingtheweb.stationstatus.util;
 
 public class Tuple<Left, Right> {
     private Left left;

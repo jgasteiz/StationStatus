@@ -1,12 +1,12 @@
-package com.fuzzingtheweb.stationstatus;
+package com.fuzzingtheweb.stationstatus.tasks;
 
 
-public class Entry {
+public class StationEntry {
     public String location;
     public String destination;
     public int minutes;
 
-    public Entry(String location, String destination, int minutes) {
+    public StationEntry(String location, String destination, int minutes) {
         this.location = location;
         this.destination = destination;
         this.minutes = minutes;
