@@ -7,10 +7,10 @@
     <string name="action_refresh">Refresh</string>
     <string name="page_title">Hendon Central Status</string>
     <string name="updated">updated</string>
-    <string name="pick_a_station">Pick your station</string>
     <string name="title_activity_my_stations">Manage stations</string>
     <string name="add_new_station">Add new station</string>
     <string name="manage_stations">Manage stations</string>
     <string name="add_a_station">Add a station</string>
+    <string name="remove_station">Remove from my stations</string>
 
 </resources>

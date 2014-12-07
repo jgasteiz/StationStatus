@@ -15,12 +15,14 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.fuzzingtheweb.stationstatus.data.DBHelper;
+import com.fuzzingtheweb.stationstatus.data.Station;
 import com.fuzzingtheweb.stationstatus.tasks.FetchStatusTask;
 import com.fuzzingtheweb.stationstatus.tasks.OnStatusesFetched;
 import com.fuzzingtheweb.stationstatus.tasks.Platform;
-import com.fuzzingtheweb.stationstatus.tasks.StationEntry;
-import com.fuzzingtheweb.stationstatus.util.PreferencesHandler;
+import com.fuzzingtheweb.stationstatus.tasks.StatusEntry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -92,12 +94,18 @@ public class MainActivity extends Activity {
         private ScrollView mStationData;
         private Button mSettingsButton;
         private LayoutInflater mLayoutInflater;
-        private String mStation;
-        private String mLine;
+        private ArrayList<Station> mStationList;
+        private DBHelper mDbHelper;
         private static final int NUM_MAX_ENTRIES = 3;
         private static final String LOG_TAG = StatusDetailFragment.class.getSimpleName();
 
-        public StatusDetailFragment() {
+        /**
+         * When creating, retrieve this instance's number from its arguments.
+         */
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            mDbHelper = new DBHelper(getActivity());
         }
 
         @Override
@@ -125,21 +133,15 @@ public class MainActivity extends Activity {
         @Override
         public void onResume() {
             super.onResume();
-            mStation = PreferencesHandler.getStation(getActivity());
-            mLine = PreferencesHandler.getLine(getActivity());
+            mStationList = mDbHelper.getStationList();
             loadContent();
         }
 
         public void loadContent() {
-            if (mStation == null || mLine == null) {
-                mStationData.setVisibility(View.GONE);
-                mSettingsButton.setVisibility(View.VISIBLE);
-                ((MainActivity) getActivity()).hideProgressBar();
-            } else {
+            if (mStationList.size() > 0) {
                 mSettingsButton.setVisibility(View.GONE);
                 mStationData.setVisibility(View.VISIBLE);
                 ((MainActivity) getActivity()).showProgressBar();
-
 
                 OnStatusesFetched onStatusesFetched = new OnStatusesFetched() {
                     @Override
@@ -147,8 +149,15 @@ public class MainActivity extends Activity {
                         renderResult(platformList);
                     }
                 };
-                FetchStatusTask fetchStatusTask = new FetchStatusTask(onStatusesFetched, mStation, mLine);
+                FetchStatusTask fetchStatusTask = new FetchStatusTask(
+                        onStatusesFetched,
+                        mStationList.get(0).getStationCode(),
+                        mStationList.get(0).getLineCode());
                 fetchStatusTask.execute();
+            } else {
+                mStationData.setVisibility(View.GONE);
+                mSettingsButton.setVisibility(View.VISIBLE);
+                ((MainActivity) getActivity()).hideProgressBar();
             }
         }
 
@@ -180,16 +189,16 @@ public class MainActivity extends Activity {
                 LinearLayout entryLayout = ((LinearLayout) platformView.findViewById(android.R.id.content));
 
                 int numEntries = 0;
-                for (final StationEntry stationEntry : platform.getStationEntryList()) {
+                for (final StatusEntry statusEntry : platform.getStatusEntryList()) {
                     if (numEntries == NUM_MAX_ENTRIES) {
                         break;
                     }
-                    entryView = mLayoutInflater.inflate(R.layout.station_entry_item, entryLayout, false);
+                    entryView = mLayoutInflater.inflate(R.layout.status_entry_item, entryLayout, false);
 
                     ((TextView) entryView.findViewById(R.id.item_title))
-                            .setText(stationEntry.destination + " - " + stationEntry.getTimeTo());
+                            .setText(statusEntry.destination + " - " + statusEntry.getTimeTo());
                     ((TextView) entryView.findViewById(R.id.item_subtitle))
-                            .setText(stationEntry.location);
+                            .setText(statusEntry.location);
 
                     entryLayout.addView(entryView);
                     numEntries++;

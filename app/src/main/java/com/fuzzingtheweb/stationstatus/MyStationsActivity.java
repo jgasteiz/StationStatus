@@ -7,16 +7,23 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.fuzzingtheweb.stationstatus.data.DBHelper;
+import com.fuzzingtheweb.stationstatus.data.Station;
 import com.fuzzingtheweb.stationstatus.tasks.FetchStationsTask;
 import com.fuzzingtheweb.stationstatus.tasks.OnStationsFetched;
-import com.fuzzingtheweb.stationstatus.util.PreferencesHandler;
 import com.fuzzingtheweb.stationstatus.util.Tuple;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -50,8 +57,13 @@ public class MyStationsActivity extends Activity {
         private String LOG_TAG = MyStationsFragment.class.getSimpleName();
         private CharSequence[] mLineNames;
         private CharSequence[] mLineKeys;
-        private TextView mSelectedStation;
+        private ListView mStationListView;
+        private ArrayList<Station> mStationList;
         private boolean mNoStations;
+
+        public final static int REMOVE_STATION = 0;
+
+        private DBHelper mDbHelper;
 
         /**
          * Create a new instance of MyStationsFragment, providing "noStations"
@@ -74,6 +86,7 @@ public class MyStationsActivity extends Activity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             mNoStations = getArguments() != null && getArguments().getBoolean(NO_STATIONS);
+            mDbHelper = new DBHelper(getActivity());
         }
 
         @Override
@@ -83,16 +96,9 @@ public class MyStationsActivity extends Activity {
 
             mLineNames = getActivity().getResources().getTextArray(R.array.pref_list_line_names);
             mLineKeys = getActivity().getResources().getTextArray(R.array.pref_list_line_values);
-            mSelectedStation = (TextView) rootView.findViewById(R.id.selected_station);
+            mStationListView = (ListView) rootView.findViewById(R.id.station_list);
 
-            String station = PreferencesHandler.getStation(getActivity());
-            String line = PreferencesHandler.getLine(getActivity());
-
-            if (station == null || line == null) {
-                mSelectedStation.setVisibility(View.GONE);
-            } else {
-                mSelectedStation.setText("Line: " + line + ", Station: " + station);
-            }
+            loadStations();
 
             rootView.findViewById(R.id.new_station).setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -109,11 +115,60 @@ public class MyStationsActivity extends Activity {
             return rootView;
         }
 
-        private void refreshSelectedStation() {
-            String station = PreferencesHandler.getStation(getActivity());
-            String line = PreferencesHandler.getLine(getActivity());
-            mSelectedStation.setText("Line: " + line + ", Station: " + station);
-            mSelectedStation.setVisibility(View.VISIBLE);
+        @Override
+        public void onActivityCreated(Bundle savedInstanceState) {
+            super.onActivityCreated(savedInstanceState);
+            registerForContextMenu(mStationListView);
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            super.onCreateContextMenu(menu, v, menuInfo);
+            menu.add(0, REMOVE_STATION, 0, R.string.remove_station);
+        }
+
+        @Override
+        public boolean onContextItemSelected(MenuItem item) {
+            boolean result = super.onContextItemSelected(item);
+
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+            Station station = mStationList.get(info.position);
+
+            switch (item.getItemId()) {
+                case MyStationsFragment.REMOVE_STATION:
+                    long deleteResult = mDbHelper.deleteStation(station);
+                    if (deleteResult > 0) {
+                        loadStations();
+                    }
+                    break;
+            }
+            return result;
+        }
+
+        private void loadStations() {
+            mStationList = mDbHelper.getStationList();
+
+            ArrayAdapter<Station> stationListAdapter = new ArrayAdapter<Station> (
+                    getActivity(),
+                    R.layout.station_item,
+                    R.id.station_name,
+                    mStationList)
+            {
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    View view = super.getView(position, convertView, parent);
+
+                    Station station = mStationList.get(position);
+
+                    ((TextView) view.findViewById(R.id.station_name))
+                            .setText(station.getStationName());
+                    ((TextView) view.findViewById(R.id.line_name))
+                            .setText(station.getLineName());
+
+                    return view;
+                }
+            };
+
+            mStationListView.setAdapter(stationListAdapter);
         }
 
         public void chooseLine() {
@@ -152,14 +207,19 @@ public class MyStationsActivity extends Activity {
             builder.setTitle("Pick a station")
                     .setItems(stationNameList, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            CharSequence selectedStation = stationKeyList[which];
-                            PreferencesHandler.setStation(getActivity(), selectedStation.toString());
-                            PreferencesHandler.setLine(getActivity(), line);
-                            refreshSelectedStation();
+                            Station station = new Station(
+                                    stationNameList[which].toString(),
+                                    stationKeyList[which].toString(),
+                                    line,
+                                    line
+                            );
+                            long createResult = mDbHelper.addStation(station);
+                            if (createResult > 0) {
+                                loadStations();
+                            }
                         }
                     });
 
-            // 3. Get the AlertDialog from create()
             AlertDialog dialog = builder.create();
             dialog.show();
         }

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Platform {
     private String direction;
-    private List<StationEntry> stationEntryList;
+    private List<StatusEntry> statusEntryList;
 
     public String getStationName() {
         return stationName;
@@ -18,7 +18,7 @@ public class Platform {
     private String stationName;
 
     public Platform(String stationName) {
-        this.stationEntryList = new ArrayList<StationEntry>();
+        this.statusEntryList = new ArrayList<StatusEntry>();
         this.direction = null;
         this.stationName = stationName;
     }
@@ -31,15 +31,15 @@ public class Platform {
         this.direction = direction;
     }
 
-    public List<StationEntry> getStationEntryList() {
-        return stationEntryList;
+    public List<StatusEntry> getStatusEntryList() {
+        return statusEntryList;
     }
 
-    public void setStationEntryList(List<StationEntry> stationEntryList) {
-        this.stationEntryList = stationEntryList;
+    public void setStatusEntryList(List<StatusEntry> statusEntryList) {
+        this.statusEntryList = statusEntryList;
     }
 
-    public void addEntry(StationEntry stationEntry) {
-        this.stationEntryList.add(stationEntry);
+    public void addEntry(StatusEntry statusEntry) {
+        this.statusEntryList.add(statusEntry);
     }
 }

@@ -2,7 +2,7 @@ package com.fuzzingtheweb.stationstatus.util;
 
 
 import com.fuzzingtheweb.stationstatus.tasks.Platform;
-import com.fuzzingtheweb.stationstatus.tasks.StationEntry;
+import com.fuzzingtheweb.stationstatus.tasks.StatusEntry;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,24 +39,24 @@ public class TFLJSONParser {
                 platform.setDirection(direction);
 
                 JSONArray entryListJSON = platforms.getJSONObject(direction).getJSONArray("departures");
-                List<StationEntry> stationEntryList = getEntryList(entryListJSON);
-                platform.setStationEntryList(stationEntryList);
+                List<StatusEntry> statusEntryList = getEntryList(entryListJSON);
+                platform.setStatusEntryList(statusEntryList);
                 platformList.add(platform);
             }
         }
         return platformList;
     }
 
-    public List<StationEntry> getEntryList(JSONArray jsonArray) throws JSONException {
-        List<StationEntry> stationEntryList = new ArrayList<StationEntry>();
+    public List<StatusEntry> getEntryList(JSONArray jsonArray) throws JSONException {
+        List<StatusEntry> statusEntryList = new ArrayList<StatusEntry>();
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject entryJSON = (JSONObject) jsonArray.get(i);
-            stationEntryList.add(new StationEntry(
+            statusEntryList.add(new StatusEntry(
                     entryJSON.getString("location"),
                     entryJSON.getString("destination_name"),
                     entryJSON.getInt("best_departure_estimate_mins")));
         }
-        return stationEntryList;
+        return statusEntryList;
     }
 
     public List<Tuple> getStationsList(JSONObject jsonObject) throws JSONException {
