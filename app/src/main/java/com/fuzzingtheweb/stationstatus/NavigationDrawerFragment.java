@@ -107,6 +107,13 @@ public class NavigationDrawerFragment extends Fragment {
             }
         });
 
+
+        return mDrawerListView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
         ArrayList<Station> stationList = mDbHelper.getStationList();
         String[] stationNames = new String[stationList.size()];
         for (int i = 0; i < stationList.size(); i++) {
@@ -118,9 +125,8 @@ public class NavigationDrawerFragment extends Fragment {
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
                 stationNames
-                ));
+        ));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
-        return mDrawerListView;
     }
 
     public boolean isDrawerOpen() {
