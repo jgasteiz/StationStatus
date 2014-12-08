@@ -75,7 +75,7 @@ public class DBHelper extends SQLiteOpenHelper {
         };
 
         // How you want the results sorted in the resulting Cursor
-        String sortOrder = StationEntry.COLUMN_NAME_STATION_NAME + " DESC";
+        String sortOrder = StationEntry.COLUMN_NAME_STATION_NAME + " ASC";
 
         Cursor cursor = db.query(
                 StationEntry.TABLE_NAME,  // The table to query
