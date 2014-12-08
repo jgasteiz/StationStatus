@@ -4,6 +4,16 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity$PlaceholderFragment">
 
+    <TextView
+        android:id="@+id/no_connection"
+        android:textSize="18sp"
+        android:gravity="center_horizontal"
+        android:padding="20dp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/no_connection"
+        />
+
     <Button
         android:id="@+id/add_a_station"
         android:layout_width="fill_parent"

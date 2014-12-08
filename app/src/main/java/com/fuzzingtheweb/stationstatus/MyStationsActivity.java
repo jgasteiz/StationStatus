@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -159,6 +160,10 @@ public class MyStationsActivity extends Activity {
 
                     Station station = mStationList.get(position);
 
+                    int resourceId = getResources().getIdentifier(
+                            station.getLineCode(), "drawable", getActivity().getPackageName());
+                    ((ImageView) view.findViewById(R.id.station_icon))
+                            .setImageDrawable(getResources().getDrawable(resourceId));
                     ((TextView) view.findViewById(R.id.station_name))
                             .setText(station.getStationName());
                     ((TextView) view.findViewById(R.id.line_name))

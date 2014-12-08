@@ -3,7 +3,10 @@ package com.fuzzingtheweb.stationstatus;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.view.LayoutInflater;
@@ -12,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -30,12 +34,12 @@ import java.util.List;
 public class MainActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
-    private boolean mRefreshing = true;
+    private boolean mRefreshing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_activity2);
+        setContentView(R.layout.activity_main);
     }
 
     @Override
@@ -53,26 +57,11 @@ public class MainActivity extends Activity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.container, StatusDetailFragment.newInstance(position))
                 .commit();
     }
-
-//    public void onSectionAttached(int number) {
-//        switch (number) {
-//            case 1:
-//                mTitle = getString(R.string.title_section1);
-//                break;
-//            case 2:
-//                mTitle = getString(R.string.title_section2);
-//                break;
-//            case 3:
-//                mTitle = getString(R.string.title_section3);
-//                break;
-//        }
-//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -118,13 +107,11 @@ public class MainActivity extends Activity
 
     public static class StatusDetailFragment extends Fragment {
 
-        private LinearLayout mLayout;
-        private ScrollView mStationData;
         private Button mSettingsButton;
-        private LayoutInflater mLayoutInflater;
-        private ArrayList<Station> mStationList;
         private int mStationIndex;
         private DBHelper mDbHelper;
+        private View mRootView;
+        private Station mSelectedStation;
         private static final int NUM_MAX_ENTRIES = 3;
 
         /**
@@ -148,13 +135,9 @@ public class MainActivity extends Activity
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            mRootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-            mLayout = ((LinearLayout) rootView.findViewById(android.R.id.content));
-            mStationData = ((ScrollView) rootView.findViewById(R.id.station_data));
-            mSettingsButton = ((Button) rootView.findViewById(R.id.add_a_station));
-            mLayoutInflater = getActivity().getLayoutInflater();
-
+            mSettingsButton = ((Button) mRootView.findViewById(R.id.add_a_station));
             mSettingsButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -165,10 +148,10 @@ public class MainActivity extends Activity
             });
 
             mDbHelper = new DBHelper(getActivity());
-            mStationList = mDbHelper.getStationList();
+
             loadContent();
 
-            return rootView;
+            return mRootView;
         }
 
         @Override
@@ -177,10 +160,28 @@ public class MainActivity extends Activity
             mStationIndex = getArguments().getInt(ARG_SECTION_NUMBER);
         }
 
+        private boolean isNetworkAvailable() {
+            ConnectivityManager connectivityManager
+                    = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        }
+
         public void loadContent() {
-            if (mStationList.size() > 0) {
+
+            if (!isNetworkAvailable()) {
+                mRootView.findViewById(R.id.no_connection).setVisibility(View.VISIBLE);
+                return;
+            }
+
+            mRootView.findViewById(R.id.no_connection).setVisibility(View.GONE);
+
+            ScrollView stationDataView = ((ScrollView) mRootView.findViewById(R.id.station_data));
+            ArrayList<Station> stationList = mDbHelper.getStationList();
+
+            if (stationList.size() > 0) {
                 mSettingsButton.setVisibility(View.GONE);
-                mStationData.setVisibility(View.VISIBLE);
+                stationDataView.setVisibility(View.VISIBLE);
                 ((MainActivity) getActivity()).showProgressBar();
 
                 OnStatusesFetched onStatusesFetched = new OnStatusesFetched() {
@@ -189,13 +190,16 @@ public class MainActivity extends Activity
                         renderResult(platformList);
                     }
                 };
+
+                mSelectedStation = stationList.get(mStationIndex);
+
                 FetchStatusTask fetchStatusTask = new FetchStatusTask(
                         onStatusesFetched,
-                        mStationList.get(mStationIndex).getStationCode(),
-                        mStationList.get(mStationIndex).getLineCode());
+                        mSelectedStation.getStationCode(),
+                        mSelectedStation.getLineCode());
                 fetchStatusTask.execute();
             } else {
-                mStationData.setVisibility(View.GONE);
+                stationDataView.setVisibility(View.GONE);
                 mSettingsButton.setVisibility(View.VISIBLE);
                 ((MainActivity) getActivity()).hideProgressBar();
             }
@@ -204,14 +208,16 @@ public class MainActivity extends Activity
         public void renderResult(final List<Platform> platformList) {
             ((MainActivity) getActivity()).hideProgressBar();
 
+            LinearLayout mainLayout = ((LinearLayout) mRootView.findViewById(android.R.id.content));
+            LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+
             // Empty main layout.
-            mLayout.removeAllViews();
+            mainLayout.removeAllViews();
 
             // If there's nothing, show message saying so.
             if (platformList.size() == 0) {
-                View view = mLayoutInflater.inflate(R.layout.platform_item, mLayout, false);
-                ((TextView) view.findViewById(android.R.id.title)).setText("There is no incoming data");
-                mLayout.addView(view);
+                mRootView.findViewById(R.id.no_connection).setVisibility(View.VISIBLE);
+                ((TextView) mRootView.findViewById(R.id.no_connection)).setText("There is no incoming data");
                 return;
             }
 
@@ -222,7 +228,7 @@ public class MainActivity extends Activity
             View entryView;
 
             for (final Platform platform : platformList) {
-                platformView = mLayoutInflater.inflate(R.layout.platform_item, mLayout, false);
+                platformView = layoutInflater.inflate(R.layout.platform_item, mainLayout, false);
                 ((TextView) platformView.findViewById(android.R.id.title))
                         .setText(platform.getDirection());
 
@@ -233,8 +239,13 @@ public class MainActivity extends Activity
                     if (numEntries == NUM_MAX_ENTRIES) {
                         break;
                     }
-                    entryView = mLayoutInflater.inflate(R.layout.status_entry_item, entryLayout, false);
+                    entryView = layoutInflater.inflate(R.layout.status_entry_item, entryLayout, false);
 
+                    int resourceId = getResources().getIdentifier(
+                            mSelectedStation.getLineCode(), "drawable", getActivity().getPackageName());
+
+                    ((ImageView) entryView.findViewById(R.id.station_icon))
+                            .setImageDrawable(getResources().getDrawable(resourceId));
                     ((TextView) entryView.findViewById(R.id.item_title))
                             .setText(statusEntry.destination + " - " + statusEntry.getTimeTo());
                     ((TextView) entryView.findViewById(R.id.item_subtitle))
@@ -244,7 +255,7 @@ public class MainActivity extends Activity
                     numEntries++;
                 }
 
-                mLayout.addView(platformView);
+                mainLayout.addView(platformView);
             }
         }
     }

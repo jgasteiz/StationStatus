@@ -16,6 +16,6 @@ public class StatusEntry {
         if (minutes == 0) {
             return "Due";
         }
-        return Integer.toString(this.minutes);
+        return this.minutes + "min";
     }
 }
