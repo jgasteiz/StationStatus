@@ -2,7 +2,7 @@ package com.fuzzingtheweb.stationstatus;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DialogFragment;
+import android.app.ListFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.fuzzingtheweb.stationstatus.data.DBHelper;
 import com.fuzzingtheweb.stationstatus.data.Station;
@@ -53,7 +54,7 @@ public class MyStationsActivity extends Activity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class MyStationsFragment extends DialogFragment {
+    public static class MyStationsFragment extends ListFragment {
 
         private String LOG_TAG = MyStationsFragment.class.getSimpleName();
         private CharSequence[] mLineNames;
@@ -97,7 +98,7 @@ public class MyStationsActivity extends Activity {
 
             mLineNames = getActivity().getResources().getTextArray(R.array.pref_list_line_names);
             mLineKeys = getActivity().getResources().getTextArray(R.array.pref_list_line_values);
-            mStationListView = (ListView) rootView.findViewById(R.id.station_list);
+            mStationListView = (ListView) rootView.findViewById(android.R.id.list);
 
             loadStations();
 
@@ -120,6 +121,11 @@ public class MyStationsActivity extends Activity {
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
             registerForContextMenu(mStationListView);
+        }
+
+        public void onListItemClick(ListView l, View v, int position, long id) {
+            super.onListItemClick(l, v, position, id);
+            l.showContextMenuForChild(v);
         }
 
         @Override
