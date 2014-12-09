@@ -139,6 +139,10 @@ public class MyStationsActivity extends Activity {
                 case MyStationsFragment.REMOVE_STATION:
                     long deleteResult = mDbHelper.deleteStation(station);
                     if (deleteResult > 0) {
+                        Toast.makeText(
+                                getActivity(),
+                                station.getStationName() + " " + getResources().getString(R.string.station_deleted),
+                                Toast.LENGTH_SHORT).show();
                         loadStations();
                     }
                     break;
@@ -220,6 +224,10 @@ public class MyStationsActivity extends Activity {
                             );
                             long createResult = mDbHelper.addStation(station);
                             if (createResult > 0) {
+                                Toast.makeText(
+                                        getActivity(),
+                                        station.getStationName() + " " + getResources().getString(R.string.station_added),
+                                        Toast.LENGTH_SHORT).show();
                                 loadStations();
                             }
                         }

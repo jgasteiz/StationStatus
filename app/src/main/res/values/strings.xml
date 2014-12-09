@@ -20,5 +20,7 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_example">Example action</string>
     <string name="no_connection">There\'s no connection to the internet</string>
+    <string name="station_deleted">has been removed from favourites</string>
+    <string name="station_added">has been added to favourites</string>
 
 </resources>
