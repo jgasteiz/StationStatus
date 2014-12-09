@@ -37,9 +37,4 @@
         <item>dlr</item>
     </string-array>
 
-    <string-array name="pref_list_station_names">
-    </string-array>
-    <string-array name="pref_list_station_values">
-    </string-array>
-
 </resources>

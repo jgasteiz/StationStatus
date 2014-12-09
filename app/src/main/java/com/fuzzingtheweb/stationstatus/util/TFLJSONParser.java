@@ -1,6 +1,7 @@
 package com.fuzzingtheweb.stationstatus.util;
 
 
+import com.fuzzingtheweb.stationstatus.data.LineStation;
 import com.fuzzingtheweb.stationstatus.tasks.Platform;
 import com.fuzzingtheweb.stationstatus.tasks.StatusEntry;
 
@@ -59,13 +60,15 @@ public class TFLJSONParser {
         return statusEntryList;
     }
 
-    public List<Tuple> getStationsList(JSONObject jsonObject) throws JSONException {
+    public List<LineStation> getStationsList(String line, JSONObject jsonObject) throws JSONException {
         JSONArray stationListJSON = jsonObject.getJSONArray("stations");
-        List<Tuple> stationList = new ArrayList<Tuple>();
+        List<LineStation> lineStationList = new ArrayList<LineStation>();
         for (int i = 0; i < stationListJSON.length(); i++) {
             JSONObject stationJSON = (JSONObject) stationListJSON.get(i);
-            stationList.add(new Tuple<String, String>(stationJSON.getString("name"), stationJSON.getString("station_code")));
+            String stationName = stationJSON.getString("name");
+            String stationCode = stationJSON.getString("station_code");
+            lineStationList.add(new LineStation(stationName, stationCode, line));
         }
-        return stationList;
+        return lineStationList;
     }
 }

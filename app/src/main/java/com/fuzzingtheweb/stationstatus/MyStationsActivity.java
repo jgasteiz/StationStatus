@@ -20,10 +20,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fuzzingtheweb.stationstatus.data.DBHelper;
+import com.fuzzingtheweb.stationstatus.data.LineStation;
 import com.fuzzingtheweb.stationstatus.data.Station;
 import com.fuzzingtheweb.stationstatus.tasks.FetchStationsTask;
 import com.fuzzingtheweb.stationstatus.tasks.OnStationsFetched;
-import com.fuzzingtheweb.stationstatus.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -193,14 +193,26 @@ public class MyStationsActivity extends Activity {
                         public void onClick(DialogInterface dialog, int which) {
                             final CharSequence selectedLine = mLineKeys[which];
                             Log.d(LOG_TAG, "Selected line: " + selectedLine);
-                            OnStationsFetched onStationsFetched = new OnStationsFetched() {
-                                @Override
-                                public void onStationsFetched(List<Tuple> tupleList) {
-                                    chooseStation(selectedLine.toString(), tupleList);
-                                }
-                            };
-                            FetchStationsTask stationsTask = new FetchStationsTask(onStationsFetched, selectedLine.toString());
-                            stationsTask.execute();
+
+                            // Check if the stations for this line are in the database
+                            ArrayList<LineStation> lineStationList = mDbHelper.getLineStations(selectedLine.toString());
+
+                            if (lineStationList.size() > 0) {
+                                Log.d(LOG_TAG, "Stations are cached, fetching them from database");
+                                chooseStation(selectedLine.toString(), lineStationList);
+                            } else {
+                                Log.d(LOG_TAG, "No cache, fetching them from API");
+                                OnStationsFetched onStationsFetched = new OnStationsFetched() {
+                                    @Override
+                                    public void onStationsFetched(List<LineStation> lineStationList) {
+                                        // Save them to the database
+                                        mDbHelper.addLineStationList(lineStationList);
+                                        chooseStation(selectedLine.toString(), lineStationList);
+                                    }
+                                };
+                                FetchStationsTask stationsTask = new FetchStationsTask(onStationsFetched, selectedLine.toString());
+                                stationsTask.execute();
+                            }
                         }
                     });
 
@@ -208,14 +220,14 @@ public class MyStationsActivity extends Activity {
             dialog.show();
         }
 
-        public void chooseStation(final String line, List<Tuple> stationTupleList) {
+        public void chooseStation(final String line, List<LineStation> lineStationList) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-            final CharSequence[] stationNameList = new CharSequence[stationTupleList.size()];
-            final CharSequence[] stationKeyList = new CharSequence[stationTupleList.size()];
-            for (int i = 0; i < stationTupleList.size(); i++) {
-                stationNameList[i] = (String) stationTupleList.get(i).getLeft();
-                stationKeyList[i] = (String) stationTupleList.get(i).getRight();
+            final CharSequence[] stationNameList = new CharSequence[lineStationList.size()];
+            final CharSequence[] stationKeyList = new CharSequence[lineStationList.size()];
+            for (int i = 0; i < lineStationList.size(); i++) {
+                stationNameList[i] = lineStationList.get(i).getStationName();
+                stationKeyList[i] = lineStationList.get(i).getStationCode();
             }
 
             // 2. Chain together various setter methods to set the dialog characteristics

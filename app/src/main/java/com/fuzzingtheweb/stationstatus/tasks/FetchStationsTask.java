@@ -2,9 +2,9 @@ package com.fuzzingtheweb.stationstatus.tasks;
 
 import android.os.AsyncTask;
 
+import com.fuzzingtheweb.stationstatus.data.LineStation;
 import com.fuzzingtheweb.stationstatus.util.JSONParser;
 import com.fuzzingtheweb.stationstatus.util.TFLJSONParser;
-import com.fuzzingtheweb.stationstatus.util.Tuple;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,7 +12,7 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Locale;
 
-public class FetchStationsTask extends AsyncTask<Long, Void, List<Tuple>> {
+public class FetchStationsTask extends AsyncTask<Long, Void, List<LineStation>> {
 
     private static final String LOG_TAG = FetchStationsTask.class.getSimpleName();
     private String mLine;
@@ -26,13 +26,13 @@ public class FetchStationsTask extends AsyncTask<Long, Void, List<Tuple>> {
     }
 
     @Override
-    protected List<Tuple> doInBackground(Long... params) {
+    protected List<LineStation> doInBackground(Long... params) {
         String url = String.format(Locale.ENGLISH, "http://transportapi.com/v3/uk/tube/%s.json?app_id=%s&api_key=%s", mLine, APP_ID, API_KEY);
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = jsonParser.getJSONFromUrl(url);
         TFLJSONParser tfljsonParser = new TFLJSONParser();
         try {
-            return tfljsonParser.getStationsList(jsonObject);
+            return tfljsonParser.getStationsList(mLine, jsonObject);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -40,7 +40,7 @@ public class FetchStationsTask extends AsyncTask<Long, Void, List<Tuple>> {
     }
 
     @Override
-    protected void onPostExecute(List<Tuple> stationList) {
-        mListener.onStationsFetched(stationList);
+    protected void onPostExecute(List<LineStation> lineStationList) {
+        mListener.onStationsFetched(lineStationList);
     }
 }

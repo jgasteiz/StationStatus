@@ -1,9 +1,9 @@
 package com.fuzzingtheweb.stationstatus.tasks;
 
-import com.fuzzingtheweb.stationstatus.util.Tuple;
+import com.fuzzingtheweb.stationstatus.data.LineStation;
 
 import java.util.List;
 
 public interface OnStationsFetched {
-    void onStationsFetched(List<Tuple> tupleList);
+    void onStationsFetched(List<LineStation> lineStationList);
 }
