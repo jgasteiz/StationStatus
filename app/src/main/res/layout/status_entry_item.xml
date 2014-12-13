@@ -1,49 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
+    style="@style/EntryList.ListItem"
     >
 
     <ImageView
         android:id="@+id/station_icon"
-        android:gravity="center"
-        android:layout_width="40dp"
-        android:layout_height="32dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
+        style="@style/EntryList.ItemIcon"
         android:src="@drawable/northern"
-        />
+        android:contentDescription="@string/line_icon_description" />
 
     <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:orientation="vertical" >
+        style="@style/EntryList.ItemContent"
+        >
+
+        <LinearLayout
+            style="@style/EntryList.ItemHeader"
+            >
+            <TextView
+                style="@style/EntryList.ItemDestination"
+                android:id="@+id/item_destination"
+                android:text="@string/dummy_destination" />
+
+            <TextView
+                style="@style/EntryList.ItemTimeTo"
+                android:id="@+id/item_time_to"
+                android:text="@string/dummy_timeto"
+                />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/item_title"
-            android:textSize="16sp"
-            android:textColor="#000000"
-            android:fontFamily="sans-serif"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Destination" />
-
-        <TextView
+            style="@style/EntryList.ItemCurrentLocation"
             android:id="@+id/item_subtitle"
-            android:textSize="14sp"
-            android:textColor="#546E7A"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif"
-            android:text="Where is it now" />
-
+            android:text="@string/dummy_location" />
     </LinearLayout>
 
 </LinearLayout>

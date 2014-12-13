@@ -246,8 +246,10 @@ public class MainActivity extends Activity
 
                     ((ImageView) entryView.findViewById(R.id.station_icon))
                             .setImageDrawable(getResources().getDrawable(resourceId));
-                    ((TextView) entryView.findViewById(R.id.item_title))
-                            .setText(statusEntry.destination + " - " + statusEntry.getTimeTo());
+                    ((TextView) entryView.findViewById(R.id.item_destination))
+                            .setText(statusEntry.destination);
+                    ((TextView) entryView.findViewById(R.id.item_time_to))
+                            .setText(statusEntry.getTimeTo());
                     ((TextView) entryView.findViewById(R.id.item_subtitle))
                             .setText(statusEntry.location);
 

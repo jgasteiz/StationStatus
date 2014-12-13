@@ -24,5 +24,10 @@
     <string name="station_added">has been added to favourites</string>
     <string name="appwidget_text">Example</string>
     <string name="add_widget">Add widget</string>
+    <string name="dummy_destination">Destination</string>
+    <string name="dummy_timeto">3min</string>
+    <string name="dummy_location">Where is it now</string>
+    <string name="line_icon_description">Line icon</string>
+    <string name="dummy_direction">Direction</string>
 
 </resources>
