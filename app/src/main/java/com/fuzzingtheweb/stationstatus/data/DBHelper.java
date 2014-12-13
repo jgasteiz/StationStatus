@@ -20,7 +20,7 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String TEXT_TYPE = " TEXT";
     private static final String COMMA_SEP = ",";
     private static final String SQL_CREATE_STATION_ENTRIES =
-            "CREATE TABLE " + StationEntry.TABLE_NAME + " (" +
+            "CREATE TABLE IF NOT EXISTS " + StationEntry.TABLE_NAME + " (" +
                     StationEntry._ID + " INTEGER PRIMARY KEY," +
                     StationEntry.COLUMN_NAME_STATION_NAME + TEXT_TYPE + COMMA_SEP +
                     StationEntry.COLUMN_NAME_STATION_CODE + TEXT_TYPE + COMMA_SEP +
@@ -29,7 +29,7 @@ public class DBHelper extends SQLiteOpenHelper {
                     " )";
 
     private static final String SQL_CREATE_LINE_STATION_ENTRIES =
-            "CREATE TABLE " + LineStationEntry.TABLE_NAME + " (" +
+            "CREATE TABLE IF NOT EXISTS " + LineStationEntry.TABLE_NAME + " (" +
                     LineStationEntry._ID + " INTEGER PRIMARY KEY," +
                     LineStationEntry.COLUMN_NAME_STATION_NAME + TEXT_TYPE + COMMA_SEP +
                     LineStationEntry.COLUMN_NAME_STATION_CODE + TEXT_TYPE + COMMA_SEP +
