@@ -3,7 +3,6 @@ package com.fuzzingtheweb.stationstatus;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListFragment;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,14 +15,15 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fuzzingtheweb.stationstatus.data.DBHelper;
 import com.fuzzingtheweb.stationstatus.data.LineStation;
 import com.fuzzingtheweb.stationstatus.data.Station;
-import com.fuzzingtheweb.stationstatus.tasks.FetchStationsTask;
 import com.fuzzingtheweb.stationstatus.interfaces.OnStationsFetched;
+import com.fuzzingtheweb.stationstatus.tasks.FetchStationsTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +63,9 @@ public class MyStationsActivity extends Activity {
         private ArrayList<Station> mStationList;
         private boolean mNoStations;
 
+        private AlertDialog.Builder mBuilder;
+        private AlertDialog mDialog;
+
         public final static int REMOVE_STATION = 0;
 
         private DBHelper mDbHelper;
@@ -99,6 +102,8 @@ public class MyStationsActivity extends Activity {
             mLineNames = getActivity().getResources().getTextArray(R.array.pref_list_line_names);
             mLineKeys = getActivity().getResources().getTextArray(R.array.pref_list_line_values);
             mStationListView = (ListView) rootView.findViewById(android.R.id.list);
+
+            mBuilder = new AlertDialog.Builder(getActivity());
 
             loadStations();
 
@@ -187,72 +192,123 @@ public class MyStationsActivity extends Activity {
         }
 
         public void chooseLine() {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle("Pick a line")
-                    .setItems(mLineNames, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            final CharSequence selectedLine = mLineKeys[which];
-                            Log.d(LOG_TAG, "Selected line: " + selectedLine);
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            View dialogLayout = inflater.inflate(R.layout.dialog_layout, null);
 
-                            // Check if the stations for this line are in the database
-                            ArrayList<LineStation> lineStationList = mDbHelper.getLineStations(selectedLine.toString());
+            // Define titleView, listView and progressBar to be populated.
+            final TextView titleView = (TextView) dialogLayout.findViewById(android.R.id.title);
+            final ListView listView = (ListView) dialogLayout.findViewById(android.R.id.list);
+            final ProgressBar progressBar = (ProgressBar) dialogLayout.findViewById(android.R.id.progress);
 
-                            if (lineStationList.size() > 0) {
-                                Log.d(LOG_TAG, "Stations are cached, fetching them from database");
-                                chooseStation(selectedLine.toString(), lineStationList);
-                            } else {
-                                Log.d(LOG_TAG, "No cache, fetching them from API");
-                                OnStationsFetched onStationsFetched = new OnStationsFetched() {
-                                    @Override
-                                    public void onStationsFetched(List<LineStation> lineStationList) {
-                                        // Save them to the database
-                                        mDbHelper.addLineStationList(lineStationList);
-                                        chooseStation(selectedLine.toString(), lineStationList);
-                                    }
-                                };
-                                FetchStationsTask stationsTask = new FetchStationsTask(onStationsFetched, selectedLine.toString());
-                                stationsTask.execute();
+            // Define ArrayAdapter to set the list items.
+            ArrayAdapter<CharSequence> lineListAdapter = new ArrayAdapter<CharSequence> (
+                    getActivity(),
+                    R.layout.dialog_list_item,
+                    android.R.id.title,
+                    mLineNames)
+            {
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    View view = super.getView(position, convertView, parent);
+                    ((TextView) view.findViewById(android.R.id.title))
+                            .setText(mLineNames[position].toString());
+                    return view;
+                }
+            };
+
+            // Set title and items on the list.
+            titleView.setText("Pick a line");
+            listView.setAdapter(lineListAdapter);
+
+            // Set click listeners on the list items.
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    final CharSequence selectedLine = mLineKeys[position];
+                    Log.d(LOG_TAG, "Selected line: " + selectedLine);
+
+                    // Check if the stations for this line are in the database
+                    ArrayList<LineStation> lineStationList = mDbHelper.getLineStations(selectedLine.toString());
+
+                    if (lineStationList.size() > 0) {
+                        Log.d(LOG_TAG, "Stations are cached, fetching them from database");
+                        // Load the stations in the list
+                        chooseStation(listView, titleView, selectedLine.toString(), lineStationList);
+                    }
+                    // Load it from the API if it's not stored.
+                    else {
+                        Log.d(LOG_TAG, "No cache, fetching them from API");
+
+                        // Show progressbar
+                        listView.setVisibility(View.GONE);
+                        progressBar.setVisibility(View.VISIBLE);
+
+                        // Callback to run when the stations are fetched.
+                        OnStationsFetched onStationsFetched = new OnStationsFetched() {
+                            @Override
+                            public void onStationsFetched(List<LineStation> lineStationList) {
+                                // Save them to the database
+                                mDbHelper.addLineStationList(lineStationList);
+
+                                // Hide progressbar
+                                progressBar.setVisibility(View.GONE);
+                                listView.setVisibility(View.VISIBLE);
+
+                                // Load the stations in the list
+                                chooseStation(listView, titleView, selectedLine.toString(), lineStationList);
                             }
-                        }
-                    });
+                        };
+                        FetchStationsTask stationsTask = new FetchStationsTask(onStationsFetched, selectedLine.toString());
+                        stationsTask.execute();
+                    }
+                }
+            });
 
-            AlertDialog dialog = builder.create();
-            dialog.show();
+            mBuilder.setView(dialogLayout);
+            mDialog = mBuilder.create();
+            mDialog.show();
         }
 
-        public void chooseStation(final String line, List<LineStation> lineStationList) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        public void chooseStation(ListView listView, TextView titleView, final String line, final List<LineStation> lineStationList) {
 
-            final CharSequence[] stationNameList = new CharSequence[lineStationList.size()];
-            final CharSequence[] stationKeyList = new CharSequence[lineStationList.size()];
-            for (int i = 0; i < lineStationList.size(); i++) {
-                stationNameList[i] = lineStationList.get(i).getStationName();
-                stationKeyList[i] = lineStationList.get(i).getStationCode();
-            }
+            // Define ArrayAdapter to set the station items.
+            ArrayAdapter<LineStation> stationListAdapter = new ArrayAdapter<LineStation> (
+                    getActivity(),
+                    R.layout.dialog_list_item,
+                    android.R.id.title,
+                    lineStationList)
+            {
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    View view = super.getView(position, convertView, parent);
+                    ((TextView) view.findViewById(android.R.id.title))
+                            .setText(lineStationList.get(position).getStationName());
+                    return view;
+                }
+            };
 
-            // 2. Chain together various setter methods to set the dialog characteristics
-            builder.setTitle("Pick a station")
-                    .setItems(stationNameList, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            Station station = new Station(
-                                    stationNameList[which].toString(),
-                                    stationKeyList[which].toString(),
-                                    line,
-                                    line
-                            );
-                            long createResult = mDbHelper.addStation(station);
-                            if (createResult > 0) {
-                                Toast.makeText(
-                                        getActivity(),
-                                        station.getStationName() + " " + getResources().getString(R.string.station_added),
-                                        Toast.LENGTH_SHORT).show();
-                                loadStations();
-                            }
-                        }
-                    });
+            // Set title and items on the list.
+            titleView.setText("Pick a station");
+            listView.setAdapter(stationListAdapter);
 
-            AlertDialog dialog = builder.create();
-            dialog.show();
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Station station = new Station(
+                            lineStationList.get(position).getStationName(),
+                            lineStationList.get(position).getStationCode(),
+                            line,
+                            line
+                    );
+                    long createResult = mDbHelper.addStation(station);
+                    if (createResult > 0) {
+                        Toast.makeText(
+                                getActivity(),
+                                station.getStationName() + " " + getResources().getString(R.string.station_added),
+                                Toast.LENGTH_SHORT).show();
+                        loadStations();
+                        mDialog.hide();
+                    }
+                }
+            });
         }
     }
 }
