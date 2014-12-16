@@ -14,8 +14,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -102,8 +102,6 @@ public class MyStationsActivity extends Activity {
             mLineNames = getActivity().getResources().getTextArray(R.array.pref_list_line_names);
             mLineKeys = getActivity().getResources().getTextArray(R.array.pref_list_line_values);
             mStationListView = (ListView) rootView.findViewById(android.R.id.list);
-
-            mBuilder = new AlertDialog.Builder(getActivity());
 
             loadStations();
 
@@ -192,13 +190,16 @@ public class MyStationsActivity extends Activity {
         }
 
         public void chooseLine() {
+
+            mBuilder = new AlertDialog.Builder(getActivity());
+
             LayoutInflater inflater = getActivity().getLayoutInflater();
             View dialogLayout = inflater.inflate(R.layout.dialog_layout, null);
 
             // Define titleView, listView and progressBar to be populated.
             final TextView titleView = (TextView) dialogLayout.findViewById(android.R.id.title);
             final ListView listView = (ListView) dialogLayout.findViewById(android.R.id.list);
-            final ProgressBar progressBar = (ProgressBar) dialogLayout.findViewById(android.R.id.progress);
+            final LinearLayout progressBarWrapper = (LinearLayout) dialogLayout.findViewById(android.R.id.progress);
 
             // Define ArrayAdapter to set the list items.
             ArrayAdapter<CharSequence> lineListAdapter = new ArrayAdapter<CharSequence> (
@@ -240,7 +241,7 @@ public class MyStationsActivity extends Activity {
 
                         // Show progressbar
                         listView.setVisibility(View.GONE);
-                        progressBar.setVisibility(View.VISIBLE);
+                        progressBarWrapper.setVisibility(View.VISIBLE);
 
                         // Callback to run when the stations are fetched.
                         OnStationsFetched onStationsFetched = new OnStationsFetched() {
@@ -250,7 +251,7 @@ public class MyStationsActivity extends Activity {
                                 mDbHelper.addLineStationList(lineStationList);
 
                                 // Hide progressbar
-                                progressBar.setVisibility(View.GONE);
+                                progressBarWrapper.setVisibility(View.GONE);
                                 listView.setVisibility(View.VISIBLE);
 
                                 // Load the stations in the list
