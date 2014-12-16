@@ -23,7 +23,7 @@ import com.fuzzingtheweb.stationstatus.data.DBHelper;
 import com.fuzzingtheweb.stationstatus.data.LineStation;
 import com.fuzzingtheweb.stationstatus.data.Station;
 import com.fuzzingtheweb.stationstatus.tasks.FetchStationsTask;
-import com.fuzzingtheweb.stationstatus.tasks.OnStationsFetched;
+import com.fuzzingtheweb.stationstatus.interfaces.OnStationsFetched;
 
 import java.util.ArrayList;
 import java.util.List;

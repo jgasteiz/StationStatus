@@ -10,8 +10,8 @@ import android.widget.RemoteViews;
 
 import com.fuzzingtheweb.stationstatus.data.DBHelper;
 import com.fuzzingtheweb.stationstatus.data.Station;
-import com.fuzzingtheweb.stationstatus.tasks.FetchStatusTask;
-import com.fuzzingtheweb.stationstatus.tasks.OnStatusesFetched;
+import com.fuzzingtheweb.stationstatus.interfaces.OnTubeStatusesFetched;
+import com.fuzzingtheweb.stationstatus.tasks.FetchTubeStatusTask;
 import com.fuzzingtheweb.stationstatus.tasks.Platform;
 import com.fuzzingtheweb.stationstatus.tasks.StatusEntry;
 import com.fuzzingtheweb.stationstatus.util.Tuple;
@@ -77,18 +77,18 @@ public class StatusWidget extends AppWidgetProvider {
 
         final int stationIndex = newStationIndex;
 
-        OnStatusesFetched onStatusesFetched = new OnStatusesFetched() {
+        OnTubeStatusesFetched onTubeStatusesFetched = new OnTubeStatusesFetched() {
             @Override
-            public void onStatusesFetched(List<Platform> platformList) {
+            public void onTubeStatusesFetched(List<Platform> platformList) {
                 updateAppWidget(context, appWidgetManager, appWidgetId, getResult(platformList), stationIndex);
             }
         };
 
-        FetchStatusTask fetchStatusTask = new FetchStatusTask(
-                onStatusesFetched,
+        FetchTubeStatusTask fetchTubeStatusTask = new FetchTubeStatusTask(
+                onTubeStatusesFetched,
                 station.getStationCode(),
                 station.getLineCode());
-        fetchStatusTask.execute();
+        fetchTubeStatusTask.execute();
     }
 
     public Tuple<String, String> getResult(final List<Platform> platformList) {

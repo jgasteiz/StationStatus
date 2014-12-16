@@ -3,6 +3,7 @@ package com.fuzzingtheweb.stationstatus.tasks;
 import android.os.AsyncTask;
 
 import com.fuzzingtheweb.stationstatus.data.LineStation;
+import com.fuzzingtheweb.stationstatus.interfaces.OnStationsFetched;
 import com.fuzzingtheweb.stationstatus.util.JSONParser;
 import com.fuzzingtheweb.stationstatus.util.TFLJSONParser;
 

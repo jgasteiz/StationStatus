@@ -22,8 +22,8 @@ import android.widget.TextView;
 
 import com.fuzzingtheweb.stationstatus.data.DBHelper;
 import com.fuzzingtheweb.stationstatus.data.Station;
-import com.fuzzingtheweb.stationstatus.tasks.FetchStatusTask;
-import com.fuzzingtheweb.stationstatus.tasks.OnStatusesFetched;
+import com.fuzzingtheweb.stationstatus.interfaces.OnTubeStatusesFetched;
+import com.fuzzingtheweb.stationstatus.tasks.FetchTubeStatusTask;
 import com.fuzzingtheweb.stationstatus.tasks.Platform;
 import com.fuzzingtheweb.stationstatus.tasks.StatusEntry;
 
@@ -184,20 +184,20 @@ public class MainActivity extends Activity
                 stationDataView.setVisibility(View.VISIBLE);
                 ((MainActivity) getActivity()).showProgressBar();
 
-                OnStatusesFetched onStatusesFetched = new OnStatusesFetched() {
+                OnTubeStatusesFetched onTubeStatusesFetched = new OnTubeStatusesFetched() {
                     @Override
-                    public void onStatusesFetched(List<Platform> platformList) {
+                    public void onTubeStatusesFetched(List<Platform> platformList) {
                         renderResult(platformList);
                     }
                 };
 
                 mSelectedStation = stationList.get(mStationIndex);
 
-                FetchStatusTask fetchStatusTask = new FetchStatusTask(
-                        onStatusesFetched,
+                FetchTubeStatusTask fetchTubeStatusTask = new FetchTubeStatusTask(
+                        onTubeStatusesFetched,
                         mSelectedStation.getStationCode(),
                         mSelectedStation.getLineCode());
-                fetchStatusTask.execute();
+                fetchTubeStatusTask.execute();
             } else {
                 stationDataView.setVisibility(View.GONE);
                 mSettingsButton.setVisibility(View.VISIBLE);

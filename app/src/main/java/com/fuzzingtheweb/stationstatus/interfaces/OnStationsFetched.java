@@ -1,4 +1,4 @@
-package com.fuzzingtheweb.stationstatus.tasks;
+package com.fuzzingtheweb.stationstatus.interfaces;
 
 import com.fuzzingtheweb.stationstatus.data.LineStation;
 
