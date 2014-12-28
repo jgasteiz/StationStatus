@@ -2,6 +2,7 @@ package com.fuzzingtheweb.stationstatus.util;
 
 
 import com.fuzzingtheweb.stationstatus.data.LineStation;
+import com.fuzzingtheweb.stationstatus.tasks.BusStop;
 import com.fuzzingtheweb.stationstatus.tasks.Platform;
 import com.fuzzingtheweb.stationstatus.tasks.StatusEntry;
 
@@ -17,10 +18,32 @@ public class TFLJSONParser {
 
     private static final String LOG_TAG = TFLJSONParser.class.getSimpleName();
 
+    // TODO: do this
     public List<StatusEntry> getBusStatusEntryList(JSONObject jsonObject) throws JSONException {
         List<StatusEntry> busStatusEntryList = new ArrayList<StatusEntry>();
 
         return busStatusEntryList;
+    }
+
+    public List<BusStop> getBusStopList(JSONObject jsonObject) throws JSONException {
+        List<BusStop> bustStopList = new ArrayList<BusStop>();
+        JSONArray stops = jsonObject.getJSONArray("stops");
+        for (int i = 0; i < stops.length(); i++) {
+            JSONObject stop = (JSONObject) stops.get(i);
+            bustStopList.add(new BusStop(
+                    stop.getDouble("latitude"),
+                    stop.getDouble("longitude"),
+                    stop.getDouble("distance"),
+                    stop.getString("name"),
+                    stop.getString("locality"),
+                    stop.getString("indicator"),
+                    stop.getString("bearing"),
+                    stop.getString("mode"),
+                    stop.getString("smscode"),
+                    stop.getString("atcocode")
+            ));
+        }
+        return bustStopList;
     }
 
     public List<Platform> getPlatformList(JSONObject jsonObject) throws JSONException {

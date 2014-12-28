@@ -7,4 +7,6 @@ public class Resources {
     public final static String API_KEY = "fe4d7f6e2a9cc15a96a76ce29ab0c069";
     public final static String URL_KEY_API_KEY = "api_key";
     public final static String API_URL_BASE = "http://transportapi.com/v3/uk";
+    public final static String URL_KEY_LAT = "lat";
+    public final static String URL_KEY_LON = "lon";
 }
