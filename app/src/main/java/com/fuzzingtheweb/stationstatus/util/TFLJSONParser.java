@@ -17,6 +17,12 @@ public class TFLJSONParser {
 
     private static final String LOG_TAG = TFLJSONParser.class.getSimpleName();
 
+    public List<StatusEntry> getBusStatusEntryList(JSONObject jsonObject) throws JSONException {
+        List<StatusEntry> busStatusEntryList = new ArrayList<StatusEntry>();
+
+        return busStatusEntryList;
+    }
+
     public List<Platform> getPlatformList(JSONObject jsonObject) throws JSONException {
 
         List<Platform> platformList = new ArrayList<Platform>();

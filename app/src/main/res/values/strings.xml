@@ -29,5 +29,7 @@
     <string name="dummy_location">Where is it now</string>
     <string name="line_icon_description">Line icon</string>
     <string name="dummy_direction">Direction</string>
+    <string name="title_activity_maps">Find in the map</string>
+    <string name="find_in_map">Find in map</string>
 
 </resources>
