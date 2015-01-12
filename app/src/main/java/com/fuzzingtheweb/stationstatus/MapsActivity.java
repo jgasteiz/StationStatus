@@ -103,6 +103,7 @@ public class MapsActivity extends FragmentActivity {
         double latitude;
         double longitude;
         String stopName;
+        String indicator;
 
         LatLngBounds.Builder latLngBoundsBuilder = new LatLngBounds.Builder();
 
@@ -110,8 +111,12 @@ public class MapsActivity extends FragmentActivity {
             latitude = busStop.getLatitude();
             longitude = busStop.getLongitude();
             stopName = busStop.getName();
+            indicator = busStop.getIndicator();
 
-            mMap.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude)).title(stopName));
+            mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(latitude, longitude))
+                    .title(stopName)
+                    .snippet(indicator));
             latLngBoundsBuilder.include(new LatLng(latitude, longitude));
         }
 
